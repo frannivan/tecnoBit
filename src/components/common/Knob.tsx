@@ -32,32 +32,50 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
     onChange(newValue);
   };
 
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const step = 0.05;
+    const delta = e.deltaY > 0 ? -step : step;
+    let newValue = value + delta;
+    newValue = Math.min(Math.max(newValue, min), max);
+    onChange(newValue);
+  };
+
   return (
-    <div className="flex flex-col items-center gap-2">
-      <motion.div 
-        ref={knobRef}
-        className="relative rounded-full bg-zinc-800 shadow-xl border-2 border-zinc-700 cursor-grab active:cursor-grabbing"
-        style={{ 
-          width: size, 
-          height: size,
-          rotate: angle 
-        }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        dragElastic={0}
-        dragMomentum={false}
-        onDrag={handleDrag}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        {/* Indicator Line */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1 h-1/2 origin-bottom">
-            <div className="w-full h-1/3 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
-        </div>
-        
-        {/* Texture/Grip */}
-        <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-30 pointer-events-none"></div>
-      </motion.div>
+    <div className="flex flex-col items-center gap-2 group/knob">
+      <div className="relative">
+          <motion.div 
+            ref={knobRef}
+            className="relative rounded-full bg-zinc-800 shadow-xl border-2 border-zinc-700 cursor-ns-resize active:cursor-grabbing"
+            style={{ 
+              width: size, 
+              height: size,
+              rotate: angle 
+            }}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0}
+            dragMomentum={false}
+            onDrag={handleDrag}
+            onWheel={handleWheel}
+            whileHover={{ scale: 1.05, borderColor: '#f97316' }}
+            whileTap={{ scale: 0.95 }}
+            title="Drag up/down or Scroll to adjust"
+          >
+            {/* Indicator Line */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1 h-1/2 origin-bottom">
+                <div className="w-full h-1/3 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
+            </div>
+            
+            {/* Texture/Grip */}
+            <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-30 pointer-events-none"></div>
+          </motion.div>
+          
+          {/* Value Tooltip on Hover */}
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 text-orange-500 text-xs font-bold px-2 py-1 rounded opacity-0 group-hover/knob:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            {Math.round(((value - min) / (max - min)) * 100)}%
+          </div>
+      </div>
       {label && <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">{label}</span>}
     </div>
   );
