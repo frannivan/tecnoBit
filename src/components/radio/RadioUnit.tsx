@@ -4,7 +4,7 @@ import { Knob } from '../common/Knob';
 import { Tuner } from './Tuner';
 import { stations } from '../../data/stations';
 import { motion } from 'framer-motion';
-import { Power, Volume2 } from 'lucide-react';
+import { Power, Volume2, VolumeX } from 'lucide-react';
 
 import { Visualizer } from './Visualizer';
 
@@ -34,7 +34,8 @@ export const RadioUnit: React.FC = () => {
         
         {/* Power LED */}
         <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-            <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] transition-colors duration-500 ${isPlaying ? 'bg-red-500 text-red-500' : 'bg-red-900/30 text-red-900'}`}></div>
+            <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] transition-colors duration-500 ${isPlaying ? 'bg-green-500 text-green-500' : 'bg-red-900/30 text-red-900'}`}></div>
+            <span className="text-[10px] font-mono text-zinc-500">{isPlaying ? 'LIVE' : 'OFF'}</span>
         </div>
 
         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
@@ -50,9 +51,10 @@ export const RadioUnit: React.FC = () => {
                 />
                 <button 
                   onClick={toggleMute}
-                  className={`p-2 rounded-full ${isMuted ? 'bg-red-900/50 text-red-400' : 'bg-zinc-800 text-zinc-400'} hover:bg-zinc-700 transition-colors`}
+                  title={isMuted ? "Unmute" : "Mute"}
+                  className={`p-3 rounded-full transition-all border ${isMuted ? 'bg-red-900/20 border-red-900 text-red-500 shadow-[0_0_10px_rgba(220,38,38,0.2)]' : 'bg-zinc-800 border-zinc-700 text-green-500 hover:border-green-500 hover:text-green-400'}`}
                 >
-                    <Volume2 size={20} />
+                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                 </button>
             </div>
 
