@@ -6,16 +6,19 @@ import { stations } from '../../data/stations';
 import { motion } from 'framer-motion';
 import { Power, Volume2 } from 'lucide-react';
 
+import { Visualizer } from './Visualizer';
+
 export const RadioUnit: React.FC = () => {
   const { 
     currentStation, 
     volume, 
     setVolume, 
     isMuted, 
-    toggleMute, // togglePlay is not used here directly yet, maybe for power button
+    toggleMute, 
     isPlaying,
     togglePlay,
     isLoading,
+    error,
     setStation
   } = useRadioStore();
 
@@ -59,7 +62,7 @@ export const RadioUnit: React.FC = () => {
                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
                  
                  {/* LCD Content */}
-                 <div className="font-mono text-center z-10 w-full">
+                 <div className="font-mono text-center z-10 w-full flex flex-col items-center">
                     {isLoading ? (
                          <motion.div 
                             animate={{ opacity: [0.4, 1, 0.4] }} 
@@ -68,25 +71,36 @@ export const RadioUnit: React.FC = () => {
                          >
                             TUNING...
                          </motion.div>
+                    ) : error ? (
+                        <div className="text-red-500 font-bold animate-pulse">
+                            SIGNAL LOST
+                        </div>
                     ) : (
                         <>
+                            <div className="flex items-center gap-2 mb-1">
+                                {isPlaying && <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_5px_red]"></div>}
+                                <span className="text-xs text-orange-500/80 tracking-widest">{isPlaying ? "ON AIR" : "STANDBY"}</span>
+                            </div>
+
                             <motion.h2 
                                 key={currentStation?.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="text-3xl font-bold text-orange-500 tracking-wider shadow-[0_0_15px_rgba(249,115,22,0.4)]"
+                                className="text-2xl md:text-3xl font-bold text-orange-500 tracking-wider shadow-[0_0_15px_rgba(249,115,22,0.4)]"
                             >
                                 {currentStation?.name || "NO SIGNAL"}
                             </motion.h2>
-                            <motion.p 
+
+                            <motion.div
                                 key={currentStation?.genre}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="text-orange-300/60 mt-2 text-sm uppercase tracking-widest"
+                                className="text-orange-300/60 mt-1 text-xs uppercase tracking-widest flex flex-col items-center gap-2"
                             >
-                                {currentStation?.genre} • {currentStation?.country}
-                            </motion.p>
+                                <span>{currentStation?.genre}</span>
+                                <Visualizer isPlaying={isPlaying} />
+                            </motion.div>
                         </>
                     )}
                  </div>
@@ -124,6 +138,11 @@ export const RadioUnit: React.FC = () => {
                     }
                 }}
              />
+             <div className="flex justify-center mt-1">
+                <span className="text-[10px] font-mono text-zinc-600 bg-zinc-900/50 px-2 rounded border border-zinc-800">
+                    &lt; DRAG RED NEEDLE TO TUNE &gt;
+                </span>
+             </div>
         </div>
 
       </motion.div>

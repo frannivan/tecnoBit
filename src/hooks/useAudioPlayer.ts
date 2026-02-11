@@ -8,6 +8,7 @@ export const useAudioPlayer = () => {
     volume, 
     isMuted,
     setLoading,
+    setError,
     pause
   } = useRadioStore();
   
@@ -23,10 +24,14 @@ export const useAudioPlayer = () => {
 
     const handleWaiting = () => setLoading(true);
     const handleCanPlay = () => setLoading(false);
-    const handlePlaying = () => setLoading(false);
+    const handlePlaying = () => {
+        setLoading(false);
+        setError(null);
+    };
     const handleError = (e: Event) => {
       console.error("Audio error:", e);
       setLoading(false);
+      setError("STREAM ERROR");
       pause();
     };
 
