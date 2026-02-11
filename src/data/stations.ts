@@ -57,5 +57,12 @@ export const stations: RadioStation[] = [
     streamUrl: 'http://dreamsiteradiocp.com:8054/stream',
     genre: 'Reggae',
     country: 'Global'
+  },
+  {
+    id: 'cafe-del-mar',
+    name: 'Café del Mar',
+    streamUrl: 'https://streamer.radio.co/sb748f24ad/listen',
+    genre: 'Chillout / Lounge',
+    country: 'Ibiza'
   }
 ];

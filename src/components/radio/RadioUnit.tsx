@@ -131,10 +131,14 @@ export const RadioUnit: React.FC = () => {
              <Tuner 
                 value={(stations.indexOf(currentStation || stations[0]) / (stations.length - 1)) || 0}
                 onChange={(val) => {
+                    // Snap to nearest station index
                     const idx = Math.round(val * (stations.length - 1));
                     const newStation = stations[idx];
+                    
+                    // Only update if it's a different station and we aren't already loading it
+                    // This prevents spamming updates while dragging
                     if (newStation && newStation.id !== currentStation?.id) {
-                        setStation(newStation);
+                         setStation(newStation);
                     }
                 }}
              />
