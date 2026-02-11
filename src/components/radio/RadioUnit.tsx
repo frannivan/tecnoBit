@@ -49,6 +49,18 @@ export const RadioUnit: React.FC = () => {
                     onChange={setVolume} 
                     label="Volume" 
                 />
+                
+                {/* Fallback Slider */}
+                <input 
+                    type="range" 
+                    min={0} 
+                    max={1} 
+                    step={0.01}
+                    value={volume}
+                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                    className="w-16 h-1 bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                    title="Volume Slider"
+                />
                 <button 
                   onClick={toggleMute}
                   title={isMuted ? "Unmute" : "Mute"}
