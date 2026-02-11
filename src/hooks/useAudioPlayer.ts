@@ -56,6 +56,10 @@ export const useAudioPlayer = () => {
     
     // Only update src if it's different and we want to play
     if (audio.src !== currentStation.streamUrl) {
+        // Reset state before loading
+        setLoading(true);
+        setError(null);
+        
         audio.src = currentStation.streamUrl;
         audio.load();
     }
@@ -65,6 +69,7 @@ export const useAudioPlayer = () => {
       if (playPromise !== undefined) {
         playPromise.catch(error => {
           console.error("Auto-play was prevented:", error);
+          setError("AUTOPLAY BLOCKED / STREAM ERROR");
           pause();
         });
       }

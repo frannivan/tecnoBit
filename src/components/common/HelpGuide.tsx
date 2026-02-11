@@ -77,6 +77,28 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                             </div>
                             <span className="text-zinc-300 text-sm">Click controls / list items</span>
                         </div>
+
+                        <div className="pt-4 border-t border-zinc-700">
+                             <button
+                                onClick={() => {
+                                    const ac = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                    const osc = ac.createOscillator();
+                                    const gain = ac.createGain();
+                                    osc.connect(gain);
+                                    gain.connect(ac.destination);
+                                    osc.frequency.setValueAtTime(440, ac.currentTime);
+                                    gain.gain.setValueAtTime(0.1, ac.currentTime);
+                                    osc.start();
+                                    osc.stop(ac.currentTime + 0.5);
+                                }}
+                                className="w-full py-2 bg-red-900/30 border border-red-500/50 text-red-200 rounded hover:bg-red-900/50 transition-colors text-xs font-mono"
+                             >
+                                [DEBUG] PLAY TEST BEEP (440Hz)
+                             </button>
+                             <p className="text-[10px] text-zinc-500 mt-1">
+                                Click this. If you don't hear a beep, your system audio is muted or the tab is blocked.
+                             </p>
+                        </div>
                     </div>
                 </div>
 
