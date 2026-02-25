@@ -1,0 +1,157 @@
+# 1. Barbershop (Port 8085)
+server {
+    listen 8085;
+    server_name _;
+    root /var/www/barbershop;
+    index index.html;
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# 2. HTTP BLOCK for IP Access (Emergency / Safety)
+server {
+    listen 80 default_server;
+    server_name _; # Matches the IP address directly
+
+    # CasaVida Sub-App (Priority)
+    location = /casavida { return 301 /casavida/; }
+    location ^~ /casavida/ {
+        root /var/www;
+        try_files $uri $uri/ /casavida/index.html;
+    }
+    location ^~ /casavida/api/ {
+        proxy_pass http://localhost:8083;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # GoAccess Traffic Report (Priority)
+    location = /report { return 301 /report/; }
+    location ^~ /report/ {
+        alias /var/www/barbershop/report/;
+        index index.html;
+    }
+
+    location ^~ /report/ws {
+        proxy_pass http://localhost:7890;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+    }
+
+    # TecnoBit available via IP on HTTP
+    location / {
+        root /var/www/tecno;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# 3. HTTP BLOCK for Domains (Redirects to HTTPS)
+server {
+    listen 80;
+    server_name tecnobit.club www.tecnobit.club electrobit.club www.electrobit.club;
+
+    # Allow CasaVida even on the domain via HTTP (Emergency Access)
+    location = /casavida { return 301 /casavida/; }
+    location ^~ /casavida/ {
+        root /var/www;
+        try_files $uri $uri/ /casavida/index.html;
+    }
+    location ^~ /casavida/api/ {
+        proxy_pass http://localhost:8083;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Allow Report on HTTP Domain
+    location = /report { return 301 /report/; }
+    location ^~ /report/ {
+        alias /var/www/barbershop/report/;
+        index index.html;
+    }
+
+    # Redirect everything else to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# 4. HTTPS BLOCK for Domains
+server {
+    listen 443 ssl;
+    server_name tecnobit.club electrobit.club;
+
+    ssl_certificate /etc/letsencrypt/live/tecnobit.club/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tecnobit.club/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Logging for GoAccess (Domain monitoring)
+    access_log /var/log/nginx/tecno_access.log combined;
+
+    # CasaVida HTTPS
+    location = /casavida { return 301 /casavida/; }
+    location ^~ /casavida/ {
+        access_log off;
+        root /var/www;
+        try_files $uri $uri/ /casavida/index.html;
+    }
+    location ^~ /casavida/api/ {
+        access_log off;
+        proxy_pass http://localhost:8083;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # GoAccess Traffic Report HTTPS
+    location = /report { return 301 /report/; }
+    location ^~ /report/ {
+        access_log off;
+        alias /var/www/barbershop/report/;
+        index index.html;
+    }
+
+    location ^~ /report/ws {
+        access_log off;
+        proxy_pass http://localhost:7890;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+    }
+
+    # TecnoBit App & Catch-all Redirect
+    location / {
+        root /var/www/tecno;
+        index index.html;
+        try_files $uri $uri/ @redirect_to_root;
+
+        # Cache control for assets
+        location ~* \.(?:css|js|jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|mp3|woff2|woff|tsx|ts)$ {
+            access_log off;
+            expires 30d;
+            add_header Cache-Control "public, no-transform";
+        }
+
+        # Clear Cache for index
+        add_header Cache-Control "no-cache, no-store, must-revalidate" always;
+    }
+
+    location @redirect_to_root {
+        return 301 https://tecnobit.club/;
+    }
+}
+
+# 5. HTTPS REDIRECT WWW to non-WWW
+server {
+    listen 443 ssl;
+    server_name www.tecnobit.club www.electrobit.club;
+    ssl_certificate /etc/letsencrypt/live/tecnobit.club/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tecnobit.club/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    return 301 https://$host$request_uri;
+}

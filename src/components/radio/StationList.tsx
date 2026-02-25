@@ -7,7 +7,7 @@ export const StationList: React.FC = () => {
     const { currentStation, setStation, isPlaying } = useRadioStore();
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+        <div className="grid grid-rows-2 grid-flow-col gap-4 mt-8 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-orange-500/20 scrollbar-track-transparent">
             {stations.map((station) => {
                 const isActive = currentStation?.id === station.id;
                 return (
@@ -15,29 +15,39 @@ export const StationList: React.FC = () => {
                         key={station.id}
                         onClick={() => setStation(station)}
                         className={`
-                            flex items-center gap-4 p-4 rounded-lg border text-left transition-all group
+                            flex-none w-80 md:w-96
+                            flex items-center gap-4 p-3 rounded-lg border text-left transition-all group snap-start overflow-hidden
                             ${isActive 
-                                ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.15)]' 
-                                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600 hover:bg-zinc-800'
+                                ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_4_20px_rgba(249,115,22,0.1)]' 
+                                : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800'
                             }
                         `}
                     >
-                        <div className={`
-                            w-10 h-10 rounded-full flex items-center justify-center
-                            ${isActive ? 'bg-orange-500 text-black' : 'bg-zinc-800 text-zinc-500 group-hover:text-zinc-300'}
-                        `}>
-                            {isActive && isPlaying ? (
-                                <BarChart3 size={18} className="animate-pulse" />
-                            ) : (
-                                <Play size={18} className="ml-1" />
-                            )}
-                        </div>
-                        <div>
-                            <div className={`font-bold ${isActive ? 'text-orange-500' : 'text-zinc-300'}`}>
-                                {station.name}
+                        {/* Station Image */}
+                        {station.imageUrl && (
+                            <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-md overflow-hidden border border-zinc-800">
+                                <img src={station.imageUrl} alt={station.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                             </div>
-                            <div className="text-xs text-zinc-500 uppercase tracking-wider">
-                                {station.genre}
+                        )}
+
+                        <div className="flex-1 min-w-0 flex items-center gap-3">
+                            <div className={`
+                                w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+                                ${isActive ? 'bg-orange-500 text-black' : 'bg-zinc-800 text-zinc-500 group-hover:text-zinc-300'}
+                            `}>
+                                {isActive && isPlaying ? (
+                                    <BarChart3 size={14} className="animate-pulse" />
+                                ) : (
+                                    <Play size={14} className="ml-0.5" />
+                                )}
+                            </div>
+                            <div className="min-w-0">
+                                <div className={`font-bold truncate ${isActive ? 'text-orange-500' : 'text-zinc-300'}`}>
+                                    {station.name}
+                                </div>
+                                <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-mono truncate">
+                                    {station.genre}
+                                </div>
                             </div>
                         </div>
                     </button>

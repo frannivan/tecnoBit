@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface TunerProps {
@@ -8,14 +8,6 @@ interface TunerProps {
 
 export const Tuner: React.FC<TunerProps> = ({ value, onChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const needleRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-
-  useEffect(() => {
-    if (containerRef.current) {
-        setWidth(containerRef.current.offsetWidth);
-    }
-  }, []);
 
   const handlePointerDown = (e: React.PointerEvent) => {
       if (!containerRef.current) return;
@@ -32,8 +24,6 @@ export const Tuner: React.FC<TunerProps> = ({ value, onChange }) => {
       const newValue = Math.max(0, Math.min(1, x / rect.width));
       onChange(newValue);
   };
-
-  const needleX = value * width;
 
   return (
     <div 
@@ -60,12 +50,10 @@ export const Tuner: React.FC<TunerProps> = ({ value, onChange }) => {
 
         {/* Needle */}
         <motion.div 
-            ref={needleRef}
             className="absolute top-0 bottom-0 w-1 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] z-10"
-            style={{ 
-                left: 0,
-                x: needleX 
-            }}
+            initial={{ left: `${value * 100}%` }}
+            animate={{ left: `${value * 100}%` }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-full bg-red-500/10 border-x border-red-500/20"></div>
         </motion.div>

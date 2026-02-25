@@ -1,10 +1,146 @@
 @import "tailwindcss";
 
 @layer theme {
-  :root {
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
+  }
+}
+:root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
   }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* Pure Black Background */
+    background: #000000;
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
+    color: white;
+  }
+
+  /* Star Field Layers */
+  body::before,
+  body::after {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Layer 1: Smaller, faster stars */
+  body::before {
+    background-image: 
+      radial-gradient(1px 1px at 10% 10%, #fff, transparent),
+      radial-gradient(1px 1px at 20% 50%, #fff, transparent),
+      radial-gradient(1px 1px at 40% 20%, #fff, transparent),
+      radial-gradient(1px 1px at 50% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 80% 30%, #fff, transparent),
+      radial-gradient(1px 1px at 90% 70%, #fff, transparent),
+      radial-gradient(1px 1px at 30% 90%, #fff, transparent),
+      radial-gradient(1px 1px at 60% 40%, #fff, transparent),
+      radial-gradient(1px 1px at 70% 60%, #fff, transparent);
+    background-size: 300px 300px;
+    animation: rotateStars 60s linear infinite;
+    opacity: 0.5;
+  }
+
+  /* Layer 3: Occasional large glowing stars */
+  body::after {
+    background-image: 
+      radial-gradient(3px 3px at 5% 15%, #fff, transparent),
+      radial-gradient(3px 3px at 85% 25%, #fff, transparent),
+      radial-gradient(4px 4px at 45% 65%, #fff, transparent),
+      radial-gradient(3px 3px at 15% 85%, #fff, transparent);
+    background-size: 800px 800px;
+    animation: rotateStars 180s linear infinite;
+    opacity: 0.8;
+  }
+
+  @keyframes rotateStars {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+}
+
+/* Chrome / Metallic Effect */
+.chrome-frame {
+    background: linear-gradient(
+        135deg, 
+        #e0e0e0 0%, 
+        #999999 25%, 
+        #ffffff 50%, 
+        #888888 75%, 
+        #bcbcbc 100%
+    );
+    box-shadow: 
+        inset 0 2px 5px rgba(255,255,255,0.7), 
+        inset 0 -2px 5px rgba(0,0,0,0.6),
+        0 10px 30px rgba(0,0,0,0.8);
+    position: relative;
+    border: 1px solid #666;
+}
+
+/* Header "Life" Effects */
+.header-glass {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(249, 115, 22, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.header-glass::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #f97316, transparent);
+    animation: sweep 3s ease-in-out infinite;
+    opacity: 0.5;
+}
+
+@keyframes sweep {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Horizontal Grill Lines */
+.chrome-grill {
+    background-image: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.8) 0px,
+        rgba(0, 0, 0, 0.8) 2px,
+        rgba(50, 50, 50, 0.9) 3px,
+        rgba(50, 50, 50, 0.9) 4px
+    );
+    border: 2px solid #444;
+    box-shadow: inset 0 0 10px black;
 }
 
 /* Custom scrollbar for DJ playlist */

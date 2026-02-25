@@ -12,6 +12,7 @@ interface KnobProps {
 
 export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64, label }) => {
   const [angle, setAngle] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const knobRef = useRef<HTMLDivElement>(null);
 
   // Map value to angle (-135 to 135 degrees)
@@ -21,19 +22,57 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
     setAngle(newAngle);
   }, [value, min, max]);
 
-  const handleDrag = (_: any, info: any) => {
-    // Simple vertical drag to change value
-    const sensitivity = 0.5;
-    const delta = -info.delta.y * sensitivity;
-    
-    let newValue = value + ((max - min) * (delta / 100));
-    newValue = Math.min(Math.max(newValue, min), max);
-    
-    onChange(newValue);
+  useEffect(() => {
+    const handleWindowPointerMove = (e: PointerEvent) => {
+      if (!isDragging) return;
+
+      const sensitivity = 0.005;
+      const delta = (-e.movementY + e.movementX) * sensitivity;
+      const newValue = Math.min(max, Math.max(min, value + delta));
+      
+      if (newValue !== value) {
+        onChange(newValue);
+      }
+    };
+
+    const handleWindowPointerUp = (e: PointerEvent) => {
+      if (!isDragging) return;
+      setIsDragging(false);
+      document.body.style.cursor = '';
+      
+      // Explicitly release capture if possible
+      try {
+        const target = e.target as HTMLElement;
+        if (target && target.releasePointerCapture) {
+          target.releasePointerCapture(e.pointerId);
+        }
+      } catch (err) {
+        // Ignore capture errors
+      }
+    };
+
+    if (isDragging) {
+      window.addEventListener('pointermove', handleWindowPointerMove);
+      window.addEventListener('pointerup', handleWindowPointerUp);
+      window.addEventListener('pointercancel', handleWindowPointerUp);
+    }
+
+    return () => {
+      window.removeEventListener('pointermove', handleWindowPointerMove);
+      window.removeEventListener('pointerup', handleWindowPointerUp);
+      window.removeEventListener('pointercancel', handleWindowPointerUp);
+    };
+  }, [isDragging, value, min, max, onChange]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    const target = e.currentTarget as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+    setIsDragging(true);
+    document.body.style.cursor = 'grabbing';
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
     const step = 0.05;
     const delta = e.deltaY > 0 ? -step : step;
     let newValue = value + delta;
@@ -46,19 +85,19 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
       <div className="relative">
           <motion.div 
             ref={knobRef}
-            className="relative rounded-full bg-zinc-800 shadow-xl border-2 border-zinc-700 cursor-ns-resize active:cursor-grabbing"
+            className={`relative rounded-full bg-zinc-800 shadow-xl border-2 border-zinc-700 touch-none transition-shadow ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{ 
               width: size, 
               height: size,
               rotate: angle 
             }}
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={0}
-            dragMomentum={false}
-            onDrag={handleDrag}
+            onPointerDown={handlePointerDown}
             onWheel={handleWheel}
-            whileHover={{ scale: 1.05, borderColor: '#f97316' }}
+            whileHover={{ 
+              scale: 1.05, 
+              borderColor: '#f97316',
+              boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)"
+            }}
             whileTap={{ scale: 0.95 }}
             title="Drag up/down or Scroll to adjust"
           >
@@ -69,6 +108,9 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
             
             {/* Texture/Grip */}
             <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-30 pointer-events-none"></div>
+            
+            {/* Inner Shadow for depth */}
+            <div className="absolute inset-1 rounded-full border border-black/20 pointer-events-none"></div>
           </motion.div>
           
           {/* Value Tooltip on Hover */}

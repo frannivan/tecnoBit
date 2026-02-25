@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master System Dashboard | TecnoBit & CasaVida</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+        }
+
+        header {
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            filter: drop-shadow(0 0 10px var(--primary-glow));
+        }
+
+        .logo h1 {
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-header {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .nav-btn.active {
+            color: #fff;
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        main {
+            padding: 3rem 4rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .card h3 i {
+            color: var(--primary);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .status-badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-badge.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .tech-list {
+            list-style: none;
+        }
+
+        .tech-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem;
+            background: var(--glass);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .tech-label { color: var(--text-muted); }
+        .tech-value { font-weight: 600; color: var(--accent); }
+
+        code-block {
+            display: block;
+            background: #000;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #d1d5db;
+            position: relative;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .copy-btn:hover { background: var(--primary); color: #fff; }
+
+        .config-path {
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .terminal {
+            background: #111;
+            border-radius: 12px;
+            padding: 0.5rem;
+            border: 1px solid #333;
+        }
+
+        .terminal-header {
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .dot { height: 10px; width: 10px; border-radius: 50%; }
+        .dot.red { background: var(--danger); }
+        .dot.yellow { background: var(--warning); }
+        .dot.green { background: var(--accent); }
+
+        .app-menu {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+
+        .menu-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .menu-tree {
+            list-style: none;
+            margin-left: 0.5rem;
+        }
+
+        .menu-tree li {
+            position: relative;
+            padding-left: 1rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .menu-tree li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 8px;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .network-topology {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .node {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-align: center;
+            position: relative;
+            min-width: 200px;
+        }
+
+        .arrow {
+            height: 40px;
+            width: 2px;
+            background: var(--primary);
+            position: relative;
+        }
+
+        .arrow::after {
+            content: '▼';
+            position: absolute;
+            bottom: -5px;
+            left: -6px;
+            color: var(--primary);
+            font-size: 0.8rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Tabs Specific */
+        #search-box {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.8rem 1.5rem;
+            color: #fff;
+            width: 300px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <i class="fa-solid fa-microchip"></i>
+        <div>
+            <h1>ORACLE CLOUD MASTER</h1>
+            <p style="font-size: 0.8rem; color: var(--text-muted)">Infraestructura TecnoBit & CasaVida</p>
+        </div>
+    </div>
+    <div class="nav-header">
+        <button class="nav-btn active" onclick="showSection('overview')"><i class="fa-solid fa-gauge-high"></i> Overview</button>
+        <button class="nav-btn" onclick="showSection('infra')"><i class="fa-solid fa-server"></i> Infraestructura</button>
+        <button class="nav-btn" onclick="showSection('apps')"><i class="fa-solid fa-cubes"></i> Aplicaciones</button>
+        <button class="nav-btn" onclick="showSection('commands')"><i class="fa-solid fa-terminal"></i> Comandos</button>
+        <button class="nav-btn" onclick="showSection('network')"><i class="fa-solid fa-network-wired"></i> Red & SSL</button>
+    </div>
+</header>
+
+<main>
+    <!-- OVERVIEW SECTION -->
+    <div id="overview" class="section active">
+        <div class="grid">
+            <div class="card">
+                <div class="status-badge"><i class="fa-solid fa-circle pulse"></i> Sistema Operativo Online</div>
+                <h3><i class="fa-solid fa-info-circle"></i> Estado Global</h3>
+                <div class="tech-list">
+                    <div class="tech-item"><span class="tech-label">IP Pública</span><span class="tech-value">143.47.101.209</span></div>
+                    <div class="tech-item"><span class="tech-label">Dominio</span><span class="tech-value">tecnobit.club</span></div>
+                    <div class="tech-item"><span class="tech-label">Región</span><span class="tech-value">Oracle Cloud (UAT)</span></div>
+                    <div class="tech-item"><span class="tech-label">Apps Hosteadas</span><span class="tech-value">9 Servicios</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Accesos directos de mantenimiento rápido.</p>
+                <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                    <button class="nav-btn" style="width: 100%; justify-content: center" onclick="alert('Consulta la pestaña Comandos')"><i class="fa-solid fa-sync"></i> Reiniciar Nginx</button>
+                    <button class="nav-btn" style="width: 100%; justify-content: center" onclick="alert('Consulta la pestaña Aplicaciones')"><i class="fa-solid fa-database"></i> Ver Base de Datos</button>
+                    <button class="nav-btn" style="width: 100%; justify-content: center" onclick="window.open('http://143.47.101.209/casavida/', '_blank')"><i class="fa-solid fa-external-link"></i> Abrir CasaVida</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="status-badge warning"><i class="fa-solid fa-triangle-exclamation"></i> Puertos Pendientes</div>
+                <h3><i class="fa-solid fa-shield-halved"></i> Seguridad Perimetral</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    Actualmente el tráfico HTTPS (443) y Barbershop (8085) está restringido por la VCN de Oracle.
+                </p>
+                <div class="tech-list" style="margin-top: 1rem;">
+                    <div class="tech-item"><span class="tech-label">Port 80 (HTTP)</span><span class="tech-value" style="color: var(--accent)">OPEN</span></div>
+                    <div class="tech-item"><span class="tech-label">Port 443 (SSL)</span><span class="tech-value" style="color: var(--danger)">VCN BLOCKED</span></div>
+                    <div class="tech-item"><span class="tech-label">Port 8085 (Barber)</span><span class="tech-value" style="color: var(--danger)">VCN BLOCKED</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fa-solid fa-clock-rotate-left"></i> Bitácora de Cambios Recientes</h3>
+            <div class="tech-list">
+                <div class="tech-item">
+                    <span>Despliegue de TecnoBit en Dominio Raíz (tecnobit.club)</span>
+                    <span class="tech-muted">Hoy</span>
+                </div>
+                <div class="tech-item">
+                    <span>Configuración de Redirección Inteligente (Catch-all)</span>
+                    <span class="tech-muted">Hoy</span>
+                </div>
+                <div class="tech-item">
+                    <span>Migración de Barbershop a Puerto Dedicado 8085</span>
+                    <span class="tech-muted">Hoy</span>
+                </div>
+                <div class="tech-item">
+                    <span>Implementación de Headers HSTS y Seguridad Pro</span>
+                    <span class="tech-muted">Hoy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFRA SECTION -->
+    <div id="infra" class="section">
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3><i class="fa-solid fa-folder-tree"></i> Mapa de Configuración</h3>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Rutas exactas de los archivos vitales en el servidor Ubuntu.</p>
+            
+            <span class="config-path">1. Nginx (Servidor Web & Proxy)</span>
+            <code-block>
+/etc/nginx/sites-available/default   # Configuración de Dominios, Puertos y Rutas
+/etc/nginx/nginx.conf                # Configuración Global de Nginx
+            </code-block>
+
+            <span class="config-path">2. Systemd (Servicios en Segundo Plano)</span>
+            <code-block>
+/etc/systemd/system/casavida.service    # Backend Java CasaVida
+/etc/systemd/system/barbershop.service  # Backend Java Barbershop
+/etc/systemd/system/lacanchita.service  # Backend LaCanchita
+/etc/systemd/system/lotemaster.service  # Backend LoteMaster
+/etc/systemd/system/amulets.service     # Backend Amulets
+/etc/systemd/system/abtech.service      # Backend ABTech
+            </code-block>
+
+            <span class="config-path">3. SSL & Certificados (Let's Encrypt)</span>
+            <code-block>
+/etc/letsencrypt/live/tecnobit.club/fullchain.pem  # Certificado Público
+/etc/letsencrypt/live/tecnobit.club/privkey.pem    # Llave Privada
+            </code-block>
+        </div>
+
+        <div class="card">
+            <h3><i class="fa-solid fa-file-code"></i> Configuración Nginx Actual (Extracto v12)</h3>
+            <code-block>
+# Bloque de Redirección Segura
+server {
+    listen 80;
+    server_name tecnobit.club www.tecnobit.club;
+    
+    location /casavida/ {
+        root /var/www;
+        try_files $uri $uri/ /casavida/index.html; # Permite acceso por HTTP provisional
+    }
+
+    location / {
+        return 301 https://$host$request_uri; # Fuerza HTTPS para el dominio principal
+    }
+}
+            </code-block>
+        </div>
+    </div>
+
+    <!-- APPS SECTION -->
+    <div id="apps" class="section">
+        <div class="grid">
+            <!-- TECNOBIT -->
+            <div class="card">
+                <div class="status-badge"><i class="fa-solid fa-music"></i> Audio Streaming</div>
+                <h3>TecnoBit Pro</h3>
+                <div class="tech-list" style="margin-bottom: 1.5rem;">
+                    <div class="tech-item"><span class="tech-label">Framework</span><span class="tech-value">React 18 / Vite</span></div>
+                    <div class="tech-item"><span class="tech-label">Entorno</span><span class="tech-value">Producción</span></div>
+                </div>
+                <div class="app-menu">
+                    <span class="menu-title">Arquitectura de Menús</span>
+                    <ul class="menu-tree">
+                        <li>Hero (Player Principal)</li>
+                        <li>Sección de Mixes (Firebase/Local)</li>
+                        <li>Gelería de Audios (Ruta Dinámica)</li>
+                        <li>Footer Informativo</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- CASAVIDA -->
+            <div class="card">
+                <div class="status-badge"><i class="fa-solid fa-house"></i> Real Estate</div>
+                <h3>CasaVida Enterprise</h3>
+                <div class="tech-list" style="margin-bottom: 1.5rem;">
+                    <div class="tech-item"><span class="tech-label">Backend</span><span class="tech-value">Java 17 / Spring Boot</span></div>
+                    <div class="tech-item"><span class="tech-label">Frontend</span><span class="tech-value">Angular 16+</span></div>
+                </div>
+                <div class="app-menu">
+                    <span class="menu-title">Menús & Submenús</span>
+                    <ul class="menu-tree">
+                        <li>Dashboard de Estadísticas</li>
+                        <li>Inventario de Lotes
+                            <ul class="menu-tree" style="margin-top: 5px;">
+                                <li>Vista de Mapa (Polígonos)</li>
+                                <li>Estados de Disponibilidad</li>
+                            </ul>
+                        </li>
+                        <li>Gestión de Clientes
+                            <ul class="menu-tree" style="margin-top: 5px;">
+                                <li>Dossier de Pagos</li>
+                                <li>Ver Comprobantes</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- BARBERSHOP -->
+            <div class="card">
+                <div class="status-badge"><i class="fa-solid fa-scissors"></i> Business Management</div>
+                <h3>BarberShop UAT</h3>
+                <div class="tech-list" style="margin-bottom: 1.5rem;">
+                    <div class="tech-item"><span class="tech-label">Stack</span><span class="tech-value">Java 17 + Static View</span></div>
+                    <div class="tech-item"><span class="tech-label">Puerto</span><span class="tech-value">8085</span></div>
+                </div>
+                <div class="app-menu">
+                    <span class="menu-title">Funcionalidades</span>
+                    <ul class="menu-tree">
+                        <li>Catálogo de Barberos</li>
+                        <li>Agenda de Citas</li>
+                        <li>Panel de Administración</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3><i class="fa-solid fa-layer-group"></i> Microservicios Satélite</h3>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top: 1.5rem;">
+                <div style="background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem">LaCanchita</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted)">Servicio de gestión deportiva.</p>
+                    <div class="tech-item" style="margin-top: 0.5rem"><span class="tech-label">Port</span><span class="tech-value">8084</span></div>
+                </div>
+                <div style="background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem">LoteMaster</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted)">Herramienta de loteo técnico.</p>
+                    <div class="tech-item" style="margin-top: 0.5rem"><span class="tech-label">Port</span><span class="tech-value">8085 (Internal)</span></div>
+                </div>
+                <div style="background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="color: var(--primary); margin-bottom: 0.5rem">Amulets & ABTech</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted)">Servicios heredados UAT.</p>
+                    <div class="tech-item" style="margin-top: 0.5rem"><span class="tech-label">Ports</span><span class="tech-value">8081, 8082</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMMANDS SECTION -->
+    <div id="commands" class="section">
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-terminal"></i> Terminal de Control</h3>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Copia y pega estos comandos para gestionar el ecosistema.</p>
+
+            <span class="config-path">Gestión de Nginx</span>
+            <code-block>
+sudo nginx -t             # Probar sintaxis sin errores
+sudo systemctl reload nginx # Recargar configuración sin caídas
+sudo systemctl restart nginx # Reinicio total del servidor web
+            </code-block>
+
+            <span class="config-path">Gestión de Servicios (Apps)</span>
+            <code-block>
+sudo systemctl status casavida    # Ver si CasaVida está corriendo
+sudo systemctl restart casavida   # Aplicar cambios tras subir nuevo JAR
+sudo journalctl -u casavida -f    # Ver logs en tiempo real (DEBUG)
+            </code-block>
+
+            <span class="config-path">Análisis de Red & Puertos</span>
+            <code-block>
+sudo netstat -tulpn | grep LISTEN # Ver qué puertos están en uso
+sudo iptables -L -n --line-numbers # Ver reglas del firewall local
+            </code-block>
+        </div>
+    </div>
+
+    <!-- NETWORK SECTION -->
+    <div id="network" class="section">
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3><i class="fa-solid fa-diagram-project"></i> Arquitectura de Flujo</h3>
+            <div class="network-topology">
+                <div class="node"><i class="fa-solid fa-globe"></i> Usuario Final</div>
+                <div class="arrow"></div>
+                <div class="node" style="border-color: var(--warning)"><i class="fa-solid fa-cloud"></i> Oracle VCN Firewall <span style="font-size: 0.7rem; display: block; color: var(--warning)">Seguridad de Red</span></div>
+                <div class="arrow"></div>
+                <div class="node" style="border-color: var(--primary)"><i class="fa-solid fa-server"></i> Nginx Reverse Proxy <span style="font-size: 0.7rem; display: block; color: var(--primary)">Ruteo por Puerto/Host</span></div>
+                <div class="arrow"></div>
+                <div style="display: flex; gap: 2rem;">
+                    <div class="node"><i class="fa-solid fa-code"></i> Frontend (React/Angular)</div>
+                    <div class="node"><i class="fa-solid fa-mug-hot"></i> Backend (Spring Boot)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3><i class="fa-solid fa-key"></i> HTTPS & SSL</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Certificado de Let's Encrypt para `tecnobit.club`.</p>
+                <div class="tech-list" style="margin-top: 1rem;">
+                    <div class="tech-item"><span class="tech-label">Emisión</span><span class="tech-value">Let's Encrypt</span></div>
+                    <div class="tech-item"><span class="tech-label">Renovación</span><span class="tech-value">Automática (Cron)</span></div>
+                    <div class="tech-item"><span class="tech-label">Algoritmo</span><span class="tech-value">RSA 2048</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3><i class="fa-solid fa-link"></i> DNS Settings</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Configuración necesaria en tu Registrador (GoDaddy/Namecheap).</p>
+                <div class="tech-list" style="margin-top: 1rem;">
+                    <div class="tech-item"><span class="tech-label">Registro A</span><span class="tech-value">143.47.101.209</span></div>
+                    <div class="tech-item"><span class="tech-label">CNAME www</span><span class="tech-value">tecnobit.club</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>© 2026 Ecosistema Digital TecnoBit & CasaVida | Manual Técnico generado para Soporte UAT</p>
+    <p style="font-size: 0.7rem; color: var(--border); margin-top: 1rem;">Design by Antigravity AI</p>
+</footer>
+
+<script>
+    function showSection(sectionId) {
+        // Ocultar todas las secciones
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Quitar clase active de todos los botones
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Mostrar la seleccionada
+        document.getElementById(sectionId).classList.add('active');
+        
+        // Activar el botón correspondiente
+        const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => 
+            btn.innerText.toLowerCase().includes(sectionId.toLowerCase())
+        );
+        if (activeBtn) activeBtn.classList.add('active');
+    }
+</script>
+
+</body>
+</html>

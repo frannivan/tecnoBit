@@ -11,13 +11,13 @@ export const Visualizer: React.FC<VisualizerProps> = ({ isPlaying }) => {
       {[...Array(5)].map((_, i) => (
         <motion.div
           key={i}
-          className="w-2 bg-orange-500 rounded-t-sm"
+          className={`w-2 rounded-t-sm transition-colors duration-1000 ${isPlaying ? 'bg-orange-500' : 'bg-zinc-700'}`}
           animate={{
-            height: isPlaying ? ['20%', '80%', '40%'] : '10%'
+            height: isPlaying ? ['20%', '80%', '40%'] : '15%'
           }}
           transition={{
             duration: 0.5,
-            repeat: Infinity,
+            repeat: isPlaying ? Infinity : 0,
             repeatType: "reverse",
             delay: i * 0.1,
             ease: "linear"

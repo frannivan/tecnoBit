@@ -6,13 +6,15 @@ interface MainLayoutProps {
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-orange-500/30 overflow-x-hidden">
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800 via-zinc-950 to-black z-0 pointer-events-none"></div>
+    <div className="min-h-screen text-zinc-100 font-sans selection:bg-orange-500/30 overflow-x-hidden relative">
         <div className="relative z-10 flex flex-col min-h-screen">
-            <header className="p-6 flex justify-between items-center border-b border-white/5 bg-black/20 backdrop-blur-sm">
-                <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-orange-500 rounded-sm flex items-center justify-center font-bold text-black shadow-[0_0_15px_rgba(249,115,22,0.6)]">TB</div>
-                    <h1 className="text-xl font-bold tracking-widest text-zinc-300">tecno<span className="text-orange-500">Bit</span></h1>
+            <header className="p-6 flex justify-between items-center header-glass">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded flex items-center justify-center font-bold text-black shadow-[0_0_20px_rgba(249,115,22,0.4)] transform hover:rotate-12 transition-transform">TB</div>
+                    <div>
+                        <h1 className="text-xl font-bold tracking-widest text-zinc-100">tecno<span className="text-orange-500">Bit</span></h1>
+                        <div className="h-0.5 w-full bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                    </div>
                 </div>
                 <div className="text-xs font-mono text-zinc-500">v1.0.0 // ANALOG_DIGITAL_HYBRID</div>
             </header>

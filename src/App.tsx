@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { RadioUnit } from './components/radio/RadioUnit';
 import { DJDeck } from './components/dj/DJDeck';
@@ -7,27 +7,41 @@ import { StartScreen } from './components/common/StartScreen';
 import { HelpGuide } from './components/common/HelpGuide';
 import { StationList } from './components/radio/StationList';
 import { useRadioStore } from './store/useRadioStore';
+import { useDJStore } from './store/useDJStore';
 import { HelpCircle } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 function App() {
   // Initialize audio player logic
   useAudioPlayer();
-  const { play } = useRadioStore();
+  const { play, hasInteracted, setHasInteracted } = useRadioStore();
+  const initUserCrate = useDJStore(state => state.initUserCrate);
   
-  const [hasStarted, setHasStarted] = useState(false);
+  // Initialize user crate from IndexedDB
+  useEffect(() => {
+    initUserCrate();
+  }, [initUserCrate]);
+  
+  // Local state only for help guide
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = () => {
-    setHasStarted(true);
+    setHasInteracted(true);
     play(); // Resume/Start audio context
-    setShowHelp(true); // Auto-show help on first start
+    if (!hasInteracted) setShowHelp(true); // Only auto-show help on first EVER start
   };
 
   return (
     <MainLayout>
+      {/* Global Audio Element - Single Source of Truth */}
+      <audio 
+        id="global-audio-player" 
+        crossOrigin="anonymous"
+        className="hidden"
+      />
+
       <AnimatePresence>
-        {!hasStarted && <StartScreen onStart={handleStart} />}
+        {!hasInteracted && <StartScreen onStart={handleStart} />}
         {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
       </AnimatePresence>
 
