@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TecnoBit Terminal | Local Dev Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #f97316; /* Orange - TecnoBit Color */
+            --primary-glow: rgba(249, 115, 22, 0.4);
+            --bg: #09090b;
+            --card-bg: rgba(24, 24, 27, 0.8);
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(255, 255, 255, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(249, 115, 22, 0.03) 0%, transparent 50%);
+        }
+
+        header {
+            padding: 2.5rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            filter: drop-shadow(0 0 15px var(--primary-glow));
+        }
+
+        .logo h1 {
+            font-weight: 800;
+            font-size: 2.2rem;
+            letter-spacing: -1.5px;
+            background: linear-gradient(to right, #fff, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        main {
+            padding: 3rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(249, 115, 22, 0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #fff;
+        }
+
+        .card h3 i {
+            color: var(--primary);
+        }
+
+        .cmd-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .cmd-btn {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+        }
+
+        .cmd-btn:hover {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .cmd-btn i {
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+        }
+
+        .status-badge.offline {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .console-output {
+            margin-top: 3rem;
+            background: #000;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+            height: 300px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .console-header {
+            position: sticky;
+            top: -2rem;
+            background: #000;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .line {
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .line .time { color: #52525b; }
+        .line .content { color: #d1d5db; }
+        .line .type { font-weight: bold; }
+        .type-info { color: var(--primary); }
+        .type-success { color: var(--accent); }
+        .type-error { color: var(--danger); }
+
+        footer {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .instruction-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(to bottom right, rgba(24, 24, 27, 0.9), rgba(9, 9, 11, 0.9));
+        }
+
+        .step-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            border: 1px solid transparent;
+        }
+
+        .step-number {
+            background: var(--primary);
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .step-content p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .step-content b {
+            color: #fff;
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <i class="fa-solid fa-radio"></i>
+        <h1>TECNOBIT TERMINAL</h1>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.9rem">Gestión de Desarrollo Local & Despliegue</p>
+</header>
+
+<main>
+    <div class="grid">
+        <!-- Quick Start Instructions -->
+        <div class="card instruction-card">
+            <h3><i class="fa-solid fa-book-open"></i> ¿Cómo correr el proyecto localmente?</h3>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <b>Instalación</b>
+                        <p>Abre una terminal en la carpeta <code>tecnoBit</code> y ejecuta <code>npm install</code> para bajar las dependencias.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <b>Modo Desarrollo</b>
+                        <p>Ejecuta <code>npm run dev</code>. Esto abrirá un servidor local (usualmente en <code>http://localhost:5173</code>).</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <b>Compilación (Build)</b>
+                        <p>Cuando estés listo para subir a producción, usa <code>npm run build</code> para generar la carpeta <code>dist/</code>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dev Control -->
+        <div class="card">
+            <div class="status-badge"><i class="pulse"></i> Local Standby</div>
+            <h3><i class="fa-solid fa-code"></i> Servidor Dev</h3>
+            <div class="cmd-group">
+                <button class="cmd-btn" onclick="log('info', 'Ejecutando npm install...')">
+                    <span>npm install</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="cmd-btn" onclick="log('info', 'Iniciando servidor Vite...'); log('success', 'Vite v6.0 listo - http://localhost:5173')">
+                    <span>npm run dev</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="cmd-btn" onclick="log('info', 'Compilando proyecto para producción...')">
+                    <span>npm run build</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Git Control -->
+        <div class="card">
+            <h3><i class="fa-brands fa-git-alt"></i> Control de Versiones</h3>
+            <div class="cmd-group">
+                <button class="cmd-btn" onclick="log('info', 'Verificando estado de git...')">
+                    <span>git status</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="cmd-btn" onclick="log('info', 'Sincronizando con repositorio privado...')">
+                    <span>git push origin main</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="cmd-btn" onclick="log('info', 'Subiendo tags de versión...')">
+                    <span>git push origin --tags</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Console -->
+    <div class="console-output" id="console">
+        <div class="console-header">
+            <span>TERMINAL OUTPUT</span>
+            <span>SYSTEM READY</span>
+        </div>
+        <div class="line">
+            <span class="time">[20:00:01]</span>
+            <span class="type type-info">INFO</span>
+            <span class="content">TecnoBit Terminal Virtual initialized.</span>
+        </div>
+        <div class="line">
+            <span class="time">[20:00:02]</span>
+            <span class="type type-success">READY</span>
+            <span class="content">Esperando interacción del usuario...</span>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>© 2026 TecnoBit | Local Management Console</p>
+    <p style="font-size: 0.7rem; color: #27272a; margin-top: 1rem;">Powered by Antigravity AI Engine</p>
+</footer>
+
+<script>
+    const consoleEl = document.getElementById('console');
+
+    function log(type, message) {
+        const line = document.createElement('div');
+        line.className = 'line';
+        
+        const now = new Date();
+        const timeStr = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+        
+        line.innerHTML = `
+            <span class="time">${timeStr}</span>
+            <span class="type type-${type}">${type.toUpperCase()}</span>
+            <span class="content">${message}</span>
+        `;
+        
+        consoleEl.appendChild(line);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+</script>
+
+</body>
+</html>

@@ -1,16 +1,29 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { useDJStore } from '../../store/useDJStore';
-import { saveTrackBlob } from '../../utils/indexedDB';
 import { DraggableTrack } from './DraggableTrack';
 import { Playlist } from './Playlist';
-import { motion } from 'framer-motion';
-import { Upload, Plus, Trash2, History as HistoryIcon, HardDrive } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Upload, Plus, History as HistoryIcon, Globe, Loader2, Music } from 'lucide-react';
 
 export const DJDeck: React.FC = () => {
-  const { history, playlist, addToPlaylist, userCrate, addToUserCrate, removeFromUserCrate } = useDJStore();
+  const { 
+    history, 
+    playlist, 
+    addToPlaylist, 
+    sharedCrate, 
+    isLoadingShared, 
+    fetchSharedCrate, 
+    uploadToSharedCrate 
+  } = useDJStore();
+
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchSharedCrate();
+  }, [fetchSharedCrate]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -24,33 +37,24 @@ export const DJDeck: React.FC = () => {
   };
 
   const handleFileUpload = async (files: FileList | null) => {
-    if (!files) return;
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
 
-    for (const file of Array.from(files)) {
-        if (!file.type.startsWith('audio/')) continue;
-
-        const id = `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const trackData = {
-            id,
-            blob: file,
-            name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-            type: file.type
-        };
-
-        try {
-            await saveTrackBlob(trackData);
-            
-            addToUserCrate({
-                id,
-                title: trackData.name,
-                artist: 'Local',
-                timestamp: Date.now(),
-                audioUrl: URL.createObjectURL(file),
-                duration: 0
+    try {
+        for (const file of Array.from(files)) {
+            if (!file.type.startsWith('audio/')) {
+                console.warn(`File ${file.name} is not an audio file.`);
+                continue;
+            }
+            await uploadToSharedCrate(file, {
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                artist: 'Shared User'
             });
-        } catch (e) {
-            console.error("Failed to save track:", e);
         }
+    } catch (e) {
+        console.error("Upload failed:", e);
+    } finally {
+        setIsUploading(false);
     }
   };
 
@@ -58,13 +62,13 @@ export const DJDeck: React.FC = () => {
     <DndContext onDragEnd={handleDragEnd}>
         <div className="w-full max-w-6xl mx-auto p-4 mt-8 flex flex-col lg:flex-row gap-8">
             
-            {/* Left: Track Pool (History & Local Crate) */}
+            {/* Left: Track Pool (History & Shared Crate) */}
             <motion.div 
                 initial={{ x: -50, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 className="lg:w-1/3 flex flex-col gap-4 order-2 lg:order-1"
             >
-                {/* Local Crate / Upload Zone */}
+                {/* Shared Crate / Upload Zone */}
                 <div 
                     onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
                     onDragLeave={() => setIsDraggingFile(false)}
@@ -73,20 +77,24 @@ export const DJDeck: React.FC = () => {
                         setIsDraggingFile(false);
                         handleFileUpload(e.dataTransfer.files);
                     }}
-                    className={`bg-zinc-900 rounded-lg p-6 border-2 border-dashed transition-all flex flex-col order-2 lg:order-1 ${isDraggingFile ? 'border-orange-500 bg-orange-500/5 shadow-[0_0_20px_rgba(249,115,22,0.1)]' : 'border-zinc-800'}`}
+                    className={`bg-zinc-900 rounded-lg p-6 border-2 border-dashed transition-all flex flex-col order-2 lg:order-1 relative min-h-[350px] ${isDraggingFile ? 'border-orange-500 bg-orange-500/5 shadow-[0_0_20px_rgba(249,115,22,0.1)]' : 'border-zinc-800'}`}
                 >
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-zinc-400 uppercase tracking-widest text-xs font-bold flex items-center gap-2">
-                            <HardDrive size={14} className="text-orange-500" />
-                            Personal Crate
+                            <Globe size={14} className="text-orange-500" />
+                            Shared Crate
                         </h3>
-                        <button 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="p-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-orange-500 hover:bg-zinc-700 transition-all"
-                            title="Upload Songs"
-                        >
-                            <Plus size={16} />
-                        </button>
+                        <div className="flex gap-2">
+                            {isLoadingShared && <Loader2 size={14} className="animate-spin text-zinc-500" />}
+                            <button 
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                                className="p-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-orange-500 hover:bg-zinc-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Upload Shared Songs"
+                            >
+                                {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                            </button>
+                        </div>
                         <input 
                             type="file" 
                             ref={fileInputRef} 
@@ -97,26 +105,43 @@ export const DJDeck: React.FC = () => {
                         />
                     </div>
 
-                    <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                        {userCrate.length === 0 ? (
-                            <div className="py-8 text-center border border-zinc-800/50 rounded bg-black/20">
-                                <Upload className="mx-auto text-zinc-700 mb-2" size={24} />
-                                <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Drop MP3s here</p>
-                            </div>
-                        ) : (
-                            userCrate.map(track => (
-                                <div key={track.id} className="relative group/local">
-                                    <DraggableTrack track={track} />
-                                    <button 
-                                        onClick={() => removeFromUserCrate(track.id)}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/local:opacity-100 p-1 text-zinc-600 hover:text-red-500 transition-all"
+                    <div className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                        <AnimatePresence mode="popLayout">
+                            {sharedCrate.length === 0 && !isLoadingShared ? (
+                                <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="h-full flex flex-col items-center justify-center text-center border border-zinc-800/50 rounded bg-black/20 py-12"
+                                >
+                                    <Upload className="text-zinc-700 mb-2" size={32} />
+                                    <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Share music with the world</p>
+                                    <p className="text-[9px] text-zinc-800 mt-1">DROP MP3s HERE</p>
+                                </motion.div>
+                            ) : (
+                                sharedCrate.map(track => (
+                                    <motion.div 
+                                        layout
+                                        key={track.id} 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="relative group/shared"
                                     >
-                                        <Trash2 size={12} />
-                                    </button>
-                                </div>
-                            ))
-                        )}
+                                        <DraggableTrack track={track} />
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/shared:opacity-100 p-1 text-orange-500/50 pointer-events-none">
+                                            <Music size={12} />
+                                        </div>
+                                    </motion.div>
+                                ))
+                            )}
+                        </AnimatePresence>
                     </div>
+
+                    {isUploading && (
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg z-10">
+                            <Loader2 className="animate-spin text-orange-500 mb-2" size={32} />
+                            <p className="text-xs font-bold text-orange-500 uppercase tracking-tighter">Uploading to Cloud...</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* History Block */}

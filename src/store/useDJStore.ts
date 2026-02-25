@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { getAllStoredTracks, deleteTrackBlob } from '../utils/indexedDB';
+import { supabase } from '../utils/supabase';
 
 export interface Track {
   id: string;
@@ -13,13 +14,16 @@ export interface Track {
   album?: string;
   year?: string;
   duration?: number; // In seconds
+  isShared?: boolean; // Flag for shared tracks
 }
 
 interface DJState {
   playlist: Track[];
   history: Track[];
   userCrate: Track[]; // Local files from IndexedDB
+  sharedCrate: Track[]; // Global files from Supabase
   currentPlaylistIndex: number; // Track which song is playing in the playlist
+  isLoadingShared: boolean;
   
   // Actions
   addToPlaylist: (track: Track) => void;
@@ -29,10 +33,14 @@ interface DJState {
   playNextTrack: () => Track | null; // Returns next track or null if none
   setCurrentPlaylistIndex: (index: number) => void;
   
-  // New Local Crate Actions
+  // Local Crate Actions
   addToUserCrate: (track: Track) => void;
   removeFromUserCrate: (id: string) => void;
   initUserCrate: () => Promise<void>;
+
+  // Shared Crate Actions
+  fetchSharedCrate: () => Promise<void>;
+  uploadToSharedCrate: (file: File, metadata: Partial<Track>) => Promise<void>;
 }
 
 export const useDJStore = create<DJState>()(
@@ -40,7 +48,9 @@ export const useDJStore = create<DJState>()(
     (set, get) => ({
       playlist: [],
       userCrate: [],
+      sharedCrate: [],
       currentPlaylistIndex: -1,
+      isLoadingShared: false,
       history: [
         { 
           id: 'mp3-1', 
@@ -149,10 +159,75 @@ export const useDJStore = create<DJState>()(
         } catch (e) {
           console.error("Failed to load user crate:", e);
         }
+      },
+
+      fetchSharedCrate: async () => {
+        set({ isLoadingShared: true });
+        try {
+            const { data, error } = await supabase
+                .from('tracks')
+                .select('*')
+                .order('timestamp', { ascending: false });
+
+            if (error) throw error;
+
+            const tracks: Track[] = (data || []).map(t => ({
+                id: t.id,
+                title: t.title,
+                artist: t.artist || 'Unknown',
+                timestamp: t.timestamp,
+                audioUrl: t.audio_url,
+                duration: t.duration || 0,
+                isShared: true
+            }));
+
+            set({ sharedCrate: tracks });
+        } catch (e) {
+            console.error("Failed to fetch shared crate:", e);
+        } finally {
+            set({ isLoadingShared: false });
+        }
+      },
+
+      uploadToSharedCrate: async (file, metadata) => {
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+        
+        try {
+            // 1. Upload to Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('audios')
+                .upload(fileName, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('audios')
+                .getPublicUrl(fileName);
+
+            // 3. Save to Database
+            const { error: dbError } = await supabase
+                .from('tracks')
+                .insert([{
+                    title: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
+                    artist: metadata.artist || 'Unknown',
+                    audio_url: publicUrl,
+                    timestamp: Date.now(),
+                    duration: metadata.duration || 0
+                }]);
+
+            if (dbError) throw dbError;
+
+            // 4. Refresh List
+            await get().fetchSharedCrate();
+        } catch (e) {
+            console.error("Failed to upload to shared crate:", e);
+            throw e;
+        }
       }
     }),
     {
-      name: 'dj-storage-v4', // localStorage key
+      name: 'dj-storage-v5', // localStorage key
       partialize: (state) => ({ 
         playlist: state.playlist,
         currentPlaylistIndex: state.currentPlaylistIndex
