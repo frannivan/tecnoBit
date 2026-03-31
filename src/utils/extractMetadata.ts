@@ -9,9 +9,9 @@ export interface TrackMetadata {
   duration?: number;
 }
 
-export const extractMetadata = (audioUrl: string): Promise<TrackMetadata> => {
+export const extractMetadata = (source: string | File | Blob): Promise<TrackMetadata> => {
   return new Promise((resolve) => {
-    jsmediatags.read(audioUrl, {
+    jsmediatags.read(source, {
       onSuccess: (tag) => {
         const tags = tag.tags;
         let artwork: string | undefined;
@@ -43,10 +43,19 @@ export const extractMetadata = (audioUrl: string): Promise<TrackMetadata> => {
 export const getAudioDuration = (audioUrl: string): Promise<number> => {
   return new Promise((resolve) => {
     const audio = new Audio(audioUrl);
+    
+    // Safety timeout: if metadata doesn't load in 10s, give up
+    const timeout = setTimeout(() => {
+        audio.src = '';
+        resolve(0);
+    }, 10000);
+
     audio.addEventListener('loadedmetadata', () => {
-      resolve(audio.duration);
+      clearTimeout(timeout);
+      resolve(Math.round(audio.duration));
     });
     audio.addEventListener('error', () => {
+      clearTimeout(timeout);
       resolve(0);
     });
   });

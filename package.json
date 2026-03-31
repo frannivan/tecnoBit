@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "npm run build && ssh -i ~/Downloads/ssh-key-2026-01-09.key ubuntu@143.47.101.209 'sudo rm -rf /var/www/tecnobit/*' && scp -i ~/Downloads/ssh-key-2026-01-09.key -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/ && ssh -i ~/Downloads/ssh-key-2026-01-09.key ubuntu@143.47.101.209 'sudo systemctl restart nginx'"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -19,6 +20,8 @@
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hot-toast": "^2.6.0",
+    "react-use": "^17.6.0",
     "tailwind-merge": "^3.4.0",
     "zustand": "^5.0.11"
   },

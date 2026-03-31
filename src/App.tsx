@@ -14,13 +14,15 @@ import { AnimatePresence } from 'framer-motion';
 function App() {
   // Initialize audio player logic
   useAudioPlayer();
-  const { play, hasInteracted, setHasInteracted } = useRadioStore();
-  const initUserCrate = useDJStore(state => state.initUserCrate);
+  const play = useRadioStore(state => state.play);
+  const hasInteracted = useRadioStore(state => state.hasInteracted);
+  const setHasInteracted = useRadioStore(state => state.setHasInteracted);
+  const initOfflineSets = useDJStore(state => state.initOfflineSets);
   
-  // Initialize user crate from IndexedDB
+  // Initialize offline sets from IndexedDB
   useEffect(() => {
-    initUserCrate();
-  }, [initUserCrate]);
+    initOfflineSets();
+  }, [initOfflineSets]);
   
   // Local state only for help guide
   const [showHelp, setShowHelp] = useState(false);
@@ -33,12 +35,9 @@ function App() {
 
   return (
     <MainLayout>
-      {/* Global Audio Element - Single Source of Truth */}
-      <audio 
-        id="global-audio-player" 
-        crossOrigin="anonymous"
-        className="hidden"
-      />
+      {/* Dual Global Audio Elements for Crossfading */}
+      <audio id="global-audio-player-1" crossOrigin="anonymous" className="hidden" />
+      <audio id="global-audio-player-2" crossOrigin="anonymous" className="hidden" />
 
       <AnimatePresence>
         {!hasInteracted && <StartScreen onStart={handleStart} />}

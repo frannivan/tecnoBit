@@ -11,9 +11,14 @@ interface WaveformPlayerProps {
 }
 
 export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({ trackId, compact = false }) => {
-  const audio = document.getElementById('global-audio-player') as HTMLAudioElement;
+  const { currentStation, activeDeck, pause } = useRadioStore();
+  
+  // Decide which physical audio element to visualize
+  const isCurrentlyPlaying = currentStation?.id === trackId;
+  const targetDeck = isCurrentlyPlaying ? activeDeck : (activeDeck === 1 ? 2 : 1);
+  const audio = document.getElementById(`global-audio-player-${targetDeck}`) as HTMLAudioElement;
+
   const { currentTime, duration, frequencies, seek } = useWaveform(audio);
-  const { pause } = useRadioStore();
   const [metadata, setMetadata] = useState<TrackMetadata | null>(null);
   
   const track = useDJStore(state => 
@@ -72,60 +77,59 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({ trackId, compact
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  // Compact mode: horizontal layout for inline display
+  // Compact mode: Progress-synced waveform for playlist
   if (compact) {
-    return (
-      <div className="flex items-center gap-2">
-        {/* Playback Controls */}
-        <div className="flex gap-1 flex-shrink-0">
-          <button
-            onClick={handlePause}
-            className="w-6 h-6 rounded bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
-            title="Pause"
-          >
-            <Pause size={12} fill="currentColor" />
-          </button>
-          <button
-            onClick={handleStop}
-            className="w-6 h-6 rounded bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center text-zinc-300 hover:text-white transition-colors"
-            title="Stop"
-          >
-            <Square size={10} fill="currentColor" />
-          </button>
-        </div>
+    const barsCount = 40;
+    const bars = Array.from(frequencies).slice(0, barsCount);
 
-        {/* Waveform + Progress Bar (stacked vertically) */}
-        <div className="flex-1 min-w-0 space-y-1">
-          {/* Mini Waveform */}
-          <div className="h-8 bg-black/40 rounded flex items-end gap-[1px] px-1 overflow-hidden">
-            {Array.from(frequencies).slice(0, 32).map((value, index) => {
-              const height = (value / 255) * 100;
+    return (
+      <div className="flex flex-col gap-1 w-full max-w-[180px]">
+        <div 
+            className="group relative h-10 bg-black/40 rounded transition-all hover:bg-black/60 cursor-pointer overflow-hidden border border-white/5"
+            onClick={handleSeek}
+        >
+          {/* Layer 1: Background Waves (Gray/Future) */}
+          <div className="absolute inset-0 flex items-end gap-[1px] px-1 opacity-20">
+            {bars.map((value, index) => {
+              const height = Math.max(15, (value / 255) * 100);
               return (
                 <div 
-                  key={index} 
-                  className="flex-1 bg-gradient-to-t from-orange-500 to-orange-300 rounded-t transition-all duration-75"
-                  style={{ height: `${height}%`, minHeight: '2px' }}
+                  key={`bg-${index}`} 
+                  className="flex-1 bg-zinc-500 rounded-t"
+                  style={{ height: `${height}%` }}
                 />
               );
             })}
           </div>
 
-          {/* Progress Bar + Time */}
-          <div className="space-y-0.5">
-            <div 
-              onClick={handleSeek}
-              className="h-1.5 bg-zinc-800 rounded-full overflow-hidden cursor-pointer group relative"
-            >
-              <div 
-                className="h-full bg-gradient-to-r from-orange-600 to-orange-400 transition-all duration-100"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[9px] font-mono text-zinc-500">
-              <span>{formatTime(currentTime)}</span>
-              <span>{formatTime(duration)}</span>
-            </div>
+          {/* Layer 2: Foreground Waves (Orange/Past) - Clipped by Progress */}
+          <div 
+              className="absolute inset-0 flex items-end gap-[1px] px-1 transition-all duration-300 pointer-events-none"
+              style={{ clipPath: `inset(0 ${100 - progress}% 0 0)` }}
+          >
+            {bars.map((value, index) => {
+              const height = Math.max(15, (value / 255) * 100);
+              return (
+                <div 
+                  key={`fg-${index}`} 
+                  className="flex-1 bg-gradient-to-t from-orange-600 to-orange-400 rounded-t shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                  style={{ height: `${height}%` }}
+                />
+              );
+            })}
           </div>
+
+          {/* Progress Head Line */}
+          <div 
+            className="absolute top-0 bottom-0 w-[1px] bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] z-10 transition-all duration-100"
+            style={{ left: `${progress}%` }}
+          />
+        </div>
+
+        {/* Mini Time Display */}
+        <div className="flex justify-between px-1">
+            <span className="text-[9px] font-mono text-orange-500/80">{formatTime(currentTime)}</span>
+            <span className="text-[9px] font-mono text-zinc-600">{formatTime(duration)}</span>
         </div>
       </div>
     );

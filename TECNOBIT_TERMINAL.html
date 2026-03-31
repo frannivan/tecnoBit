@@ -135,6 +135,7 @@
             align-items: center;
             justify-content: space-between;
             text-align: left;
+            position: relative;
         }
 
         .cmd-btn:hover {
@@ -144,9 +145,11 @@
             transform: translateX(5px);
         }
 
-        .cmd-btn i {
-            font-size: 0.8rem;
+        .cmd-btn .copy-label {
+            font-size: 0.7rem;
             opacity: 0.5;
+            text-transform: uppercase;
+            font-weight: bold;
         }
 
         .status-badge {
@@ -166,9 +169,9 @@
             color: var(--accent);
         }
 
-        .status-badge.offline {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
+        .status-badge.info {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--primary);
         }
 
         .pulse {
@@ -276,6 +279,26 @@
             margin-bottom: 0.2rem;
         }
 
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: #000;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            transform: translateY(100px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+            box-shadow: 0 10px 30px var(--primary-glow);
+        }
+
+        .copy-toast.show {
+            transform: translateY(0);
+        }
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
@@ -296,27 +319,18 @@
     <div class="grid">
         <!-- Quick Start Instructions -->
         <div class="card instruction-card">
-            <h3><i class="fa-solid fa-book-open"></i> ¿Cómo correr el proyecto localmente?</h3>
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Nota Importante</h3>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                Este archivo es una <b>interfaz de ayuda</b>. Por motivos de seguridad, un archivo HTML no puede ejecutar comandos directamente en tu máquina.
+                Haz clic en cualquier comando para <b>copiarlo</b> y pégalo en tu terminal real de VS Code.
+            </p>
+            
             <div class="step-list">
                 <div class="step-item">
-                    <div class="step-number">1</div>
+                    <div class="step-number">!</div>
                     <div class="step-content">
-                        <b>Instalación</b>
-                        <p>Abre una terminal en la carpeta <code>tecnoBit</code> y ejecuta <code>npm install</code> para bajar las dependencias.</p>
-                    </div>
-                </div>
-                <div class="step-item">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <b>Modo Desarrollo</b>
-                        <p>Ejecuta <code>npm run dev</code>. Esto abrirá un servidor local (usualmente en <code>http://localhost:5173</code>).</p>
-                    </div>
-                </div>
-                <div class="step-item">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <b>Compilación (Build)</b>
-                        <p>Cuando estés listo para subir a producción, usa <code>npm run build</code> para generar la carpeta <code>dist/</code>.</p>
+                        <b>Depuración de Supabase</b>
+                        <p>Para ver si las canciones se suben, abre la aplicación en <code style="color: var(--primary)">localhost:5173</code> y presiona <b>F12</b> para abrir la <b>Consola del Navegador</b>. Los logs de subida aparecerán ahí, no en esta terminal.</p>
                     </div>
                 </div>
             </div>
@@ -327,36 +341,62 @@
             <div class="status-badge"><i class="pulse"></i> Local Standby</div>
             <h3><i class="fa-solid fa-code"></i> Servidor Dev</h3>
             <div class="cmd-group">
-                <button class="cmd-btn" onclick="log('info', 'Ejecutando npm install...')">
+                <button class="cmd-btn" onclick="copyCmd('npm install')">
                     <span>npm install</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
                 </button>
-                <button class="cmd-btn" onclick="log('info', 'Iniciando servidor Vite...'); log('success', 'Vite v6.0 listo - http://localhost:5173')">
+                <button class="cmd-btn" onclick="copyCmd('npm run dev')">
                     <span>npm run dev</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
                 </button>
-                <button class="cmd-btn" onclick="log('info', 'Compilando proyecto para producción...')">
+                <button class="cmd-btn" onclick="copyCmd('npm run build')">
                     <span>npm run build</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
                 </button>
             </div>
         </div>
 
         <!-- Git Control -->
         <div class="card">
+            <div class="status-badge info"><i class="fa-solid fa-cloud"></i> GitHub Sync</div>
             <h3><i class="fa-brands fa-git-alt"></i> Control de Versiones</h3>
             <div class="cmd-group">
-                <button class="cmd-btn" onclick="log('info', 'Verificando estado de git...')">
+                <button class="cmd-btn" onclick="copyCmd('git status')">
                     <span>git status</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
                 </button>
-                <button class="cmd-btn" onclick="log('info', 'Sincronizando con repositorio privado...')">
-                    <span>git push origin main</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                <button class="cmd-btn" onclick="copyCmd('git pull origin develop')">
+                    <span>git pull origin develop</span>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
                 </button>
-                <button class="cmd-btn" onclick="log('info', 'Subiendo tags de versión...')">
-                    <span>git push origin --tags</span>
-                    <i class="fa-solid fa-chevron-right"></i>
+                <button class="cmd-btn" onclick="copyCmd('git add . && git commit -m \'feat: update tecnoBit\' && git push origin develop')">
+                    <span>git push origin develop</span>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Deployment Control -->
+        <div class="card">
+            <div class="status-badge" style="background: rgba(239, 68, 68, 0.1); color: var(--danger);"><i class="pulse"></i> Producción</div>
+            <h3><i class="fa-solid fa-rocket"></i> Despliegue</h3>
+            <div class="cmd-group">
+                <button class="cmd-btn" onclick="copyCmd('npm run deploy')">
+                    <span style="color: var(--primary); font-weight: bold;">npm run deploy (Todo en uno)</span>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
+                </button>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0.5rem 0;">Pasos individuales:</p>
+                <button class="cmd-btn" onclick="copyCmd('npm run build')">
+                    <span>1. Build</span>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
+                </button>
+                <button class="cmd-btn" onclick="copyCmd('scp -i ~/Downloads/ssh-key-2026-01-09.key -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/')">
+                    <span>2. Subir Archivos</span>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
+                </button>
+                <button class="cmd-btn" onclick="copyCmd('ssh -i ~/Downloads/ssh-key-2026-01-09.key ubuntu@143.47.101.209 \'sudo systemctl restart nginx\'')">
+                    <span>3. Reiniciar Nginx</span>
+                    <span class="copy-label">Copiar <i class="fa-solid fa-copy"></i></span>
                 </button>
             </div>
         </div>
@@ -369,17 +409,17 @@
             <span>SYSTEM READY</span>
         </div>
         <div class="line">
-            <span class="time">[20:00:01]</span>
-            <span class="type type-info">INFO</span>
-            <span class="content">TecnoBit Terminal Virtual initialized.</span>
+            <span class="time">[INFO]</span>
+            <span class="content">Haz clic en los comandos de arriba para copiarlos.</span>
         </div>
         <div class="line">
-            <span class="time">[20:00:02]</span>
-            <span class="type type-success">READY</span>
-            <span class="content">Esperando interacción del usuario...</span>
+            <span class="time">[HINT]</span>
+            <span class="content">Pégalos en la terminal de VS Code para ejecutarlos.</span>
         </div>
     </div>
 </main>
+
+<div id="toast" class="copy-toast">¡Comando copiado!</div>
 
 <footer>
     <p>© 2026 TecnoBit | Local Management Console</p>
@@ -388,22 +428,28 @@
 
 <script>
     const consoleEl = document.getElementById('console');
+    const toast = document.getElementById('toast');
 
     function log(type, message) {
         const line = document.createElement('div');
         line.className = 'line';
-        
         const now = new Date();
-        const timeStr = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
-        
-        line.innerHTML = `
-            <span class="time">${timeStr}</span>
-            <span class="type type-${type}">${type.toUpperCase()}</span>
-            <span class="content">${message}</span>
-        `;
-        
+        const timeStr = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}]`;
+        line.innerHTML = `<span class="time">${timeStr}</span> <span class="type type-${type}">${type.toUpperCase()}</span> <span class="content">${message}</span>`;
         consoleEl.appendChild(line);
         consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function copyCmd(cmd) {
+        navigator.clipboard.writeText(cmd).then(() => {
+            log('success', 'Copiado: ' + cmd);
+            showToast();
+        });
+    }
+
+    function showToast() {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
     }
 </script>
 

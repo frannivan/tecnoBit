@@ -5,6 +5,8 @@ export interface RadioStation {
   genre: string;
   country: string;
   imageUrl?: string;
+  noCors?: boolean;
+  playlistItemId?: string; // Reference to unique playlist entry
 }
 
 export const stations: RadioStation[] = [
@@ -22,7 +24,7 @@ export const stations: RadioStation[] = [
     streamUrl: 'https://ice1.somafm.com/groovesalad-256-mp3',
     genre: 'Downtempo',
     country: 'USA',
-    imageUrl: 'https://images.unsplash.com/photo-1459749411177-042180ce673f?w=300&h=200&fit=crop'
+    imageUrl: 'images/groove_salad.png'
   },
   {
     id: 'soma-defcon',
@@ -31,6 +33,22 @@ export const stations: RadioStation[] = [
     genre: 'Hacking / Electronic',
     country: 'USA',
     imageUrl: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=300&h=200&fit=crop'
+  },
+  {
+    id: 'soma-lush',
+    name: 'Lush',
+    streamUrl: 'https://ice1.somafm.com/lush-128-mp3',
+    genre: 'Sensual / Hypnotic Downtempo',
+    country: 'USA',
+    imageUrl: 'images/lush.png'
+  },
+  {
+    id: 'soma-synphaera',
+    name: 'Synphaera',
+    streamUrl: 'https://ice1.somafm.com/synphaera-128-mp3',
+    genre: 'Space Ambient',
+    country: 'USA',
+    imageUrl: 'images/synphaera.png'
   },
   {
     id: 'soma-vaporwaves',
@@ -46,7 +64,7 @@ export const stations: RadioStation[] = [
     streamUrl: 'https://radio.plaza.one/mp3',
     genre: 'Vaporwave / A E S T H E T I C',
     country: 'Online',
-    imageUrl: 'https://images.unsplash.com/photo-1614145121029-83a9f7968944?w=300&h=200&fit=crop'
+    imageUrl: 'images/nightwave_plaza.png'
   },
   {
     id: 'nts-1',
@@ -62,7 +80,7 @@ export const stations: RadioStation[] = [
     streamUrl: 'https://streamer.radio.co/sb748f24ad/listen',
     genre: 'Chillout',
     country: 'Ibiza',
-    imageUrl: 'https://images.unsplash.com/photo-1514525253361-b83a859b127e?w=300&h=200&fit=crop'
+    imageUrl: 'images/cafe_del_mar.png'
   },
   {
     id: 'blue-marlin-ibiza',
@@ -71,5 +89,37 @@ export const stations: RadioStation[] = [
     genre: 'Deep House / Beach Club',
     country: 'Ibiza',
     imageUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&h=200&fit=crop'
+  },
+  {
+    id: 'beat-1009',
+    name: 'Beat 100.9 FM',
+    streamUrl: 'https://tecnobit.club/proxy/beat/',
+    genre: 'Electronic / Pop',
+    country: 'Mexico',
+    imageUrl: 'images/beat_1009.png'
+  },
+  {
+    id: 'sunshine-live-techno',
+    name: 'Sunshine Live - Techno',
+    streamUrl: 'https://stream.sunshine-live.de/techno/mp3-128',
+    genre: 'Techno',
+    country: 'Germany',
+    imageUrl: 'images/sunshine_live.png'
+  },
+  {
+    id: 'lofi-girl',
+    name: 'Lofi Girl',
+    streamUrl: 'https://play.streamafrica.net/lofiradio',
+    genre: 'Lofi / Study',
+    country: 'France',
+    imageUrl: 'images/lofi_girl.png'
+  },
+  {
+    id: 'chillhop-radio',
+    name: 'Chillhop Radio',
+    streamUrl: 'https://fluxfm.streamabc.net/flx-chillhop-mp3-128-8581707?sABC=60111f18%230%232pqsn68sqo31sso4snrqs9ssnoqqon27%23&aw_0_1st.playerid=&amsparams=playerid:;skey:1611734808', 
+    genre: 'Lofi / Hip Hop',
+    country: 'Netherlands',
+    imageUrl: 'images/chillhop_radio.png'
   }
 ];
