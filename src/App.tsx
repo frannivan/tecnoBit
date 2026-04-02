@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { RadioUnit } from './components/radio/RadioUnit';
-import { DJDeck } from './components/dj/DJDeck';
+import { DJConsole } from './components/dj/console/DJConsole';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { StartScreen } from './components/common/StartScreen';
 import { HelpGuide } from './components/common/HelpGuide';
@@ -12,55 +12,55 @@ import { HelpCircle } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 function App() {
-  // Initialize audio player logic
   useAudioPlayer();
-  const play = useRadioStore(state => state.play);
+  const pause = useRadioStore(state => state.pause);
   const hasInteracted = useRadioStore(state => state.hasInteracted);
   const setHasInteracted = useRadioStore(state => state.setHasInteracted);
   const initOfflineSets = useDJStore(state => state.initOfflineSets);
   
-  // Initialize offline sets from IndexedDB
   useEffect(() => {
     initOfflineSets();
-  }, [initOfflineSets]);
+    // Silencio inicial por defecto para evitar doble sonido al arrancar
+    pause();
+  }, [initOfflineSets, pause]);
   
-  // Local state only for help guide
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = () => {
     setHasInteracted(true);
-    play(); // Resume/Start audio context
-    if (!hasInteracted) setShowHelp(true); // Only auto-show help on first EVER start
+    if (!hasInteracted) setShowHelp(true);
   };
 
   return (
     <MainLayout>
-      {/* Dual Global Audio Elements for Crossfading */}
-      <audio id="global-audio-player-1" crossOrigin="anonymous" className="hidden" />
-      <audio id="global-audio-player-2" crossOrigin="anonymous" className="hidden" />
+      <div className="flex flex-col gap-24 relative px-4 sm:px-6 lg:px-8 pb-32 max-w-7xl mx-auto w-full">
+        <AnimatePresence>
+          {!hasInteracted && <StartScreen onStart={handleStart} />}
+          {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
+        </AnimatePresence>
 
-      <AnimatePresence>
-        {!hasInteracted && <StartScreen onStart={handleStart} />}
-        {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
-      </AnimatePresence>
+        {/* Sección 1: Radio - Restaurada y FUNCIONAL */}
+        <section className="mt-8 transition-all duration-500">
+            <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
+               <RadioUnit />
+               <div className="mt-12">
+                  <StationList />
+               </div>
+            </div>
+        </section>
+        
+        {/* Sección 2: DJ Console Prototype */}
+        <section className="flex flex-col items-center">
+             <DJConsole />
+         </section>
 
-      <div className="flex flex-col gap-12 relative">
         <button 
             onClick={() => setShowHelp(true)}
-            className="fixed bottom-6 right-6 z-40 bg-zinc-800 p-3 rounded-full shadow-lg border border-zinc-600 hover:bg-zinc-700 hover:border-orange-500 hover:text-orange-500 transition-all"
+            className="fixed bottom-8 right-8 z-50 bg-zinc-900 p-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 hover:border-emerald-500 hover:text-emerald-500 transition-all group scale-90 hover:scale-100"
             title="Help Guide"
         >
             <HelpCircle size={24} />
         </button>
-
-        <section>
-            <RadioUnit />
-            <StationList />
-        </section>
-        
-        <section>
-            <DJDeck />
-        </section>
       </div>
     </MainLayout>
   );

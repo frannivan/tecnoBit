@@ -3,7 +3,7 @@ import { stations } from '../../data/stations';
 import { useRadioStore } from '../../store/useRadioStore';
 import { Play, BarChart3 } from 'lucide-react';
 
-export const StationList: React.FC = () => {
+const StationListComponent: React.FC = () => {
     const { currentStation, setStation, isPlaying } = useRadioStore();
 
     return (
@@ -56,3 +56,5 @@ export const StationList: React.FC = () => {
         </div>
     );
 };
+
+export const StationList = React.memo(StationListComponent);

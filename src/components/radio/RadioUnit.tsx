@@ -8,7 +8,7 @@ import { Power, Volume2, VolumeX } from 'lucide-react';
 
 import { Visualizer } from './Visualizer';
 
-export const RadioUnit: React.FC = () => {
+const RadioUnitComponent: React.FC = () => {
   const { 
     currentStation, 
     volume, 
@@ -225,4 +225,4 @@ export const RadioUnit: React.FC = () => {
       </motion.div>
     </div>
   );
-};
+};export const RadioUnit = React.memo(RadioUnitComponent);

@@ -23,6 +23,8 @@
     "react-hot-toast": "^2.6.0",
     "react-use": "^17.6.0",
     "tailwind-merge": "^3.4.0",
+    "tone": "^15.1.22",
+    "wavesurfer.js": "^7.12.5",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

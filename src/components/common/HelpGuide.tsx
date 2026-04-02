@@ -12,7 +12,7 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[201] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={onClose}
         >
             <motion.div 
@@ -103,12 +103,14 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-zinc-800 text-center">
-                    <button 
+                    <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={onClose}
                         className="bg-orange-500 text-black font-bold py-2 px-8 rounded hover:bg-orange-400 transition-colors"
                     >
                         GOT IT
-                    </button>
+                    </motion.button>
                 </div>
             </motion.div>
         </motion.div>

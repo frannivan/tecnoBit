@@ -16,6 +16,7 @@ export interface Track {
   album?: string;
   year?: string;
   duration?: number; // In seconds
+  bpm?: number; // Detected BPM
   isShared?: boolean; // Flag for shared tracks
   playlistItemId?: string; // Unique ID for specific entry in playlist
 }
@@ -50,6 +51,7 @@ interface DJState {
   fetchSharedCrate: () => Promise<void>;
   uploadToSharedCrate: (file: File, metadata: Partial<Track>) => Promise<void>;
   uploadMultipleToSharedCrate: (items: { file: File, metadata: Partial<Track> }[], onProgress?: (current: number, total: number) => void) => Promise<void>;
+  setTrackBPM: (trackId: string, bpm: number) => void;
   // Legacy action for individual saving (used internally for auto-cache)
   saveTrackToLocal: (track: Track) => Promise<void>;
 }
@@ -464,6 +466,13 @@ export const useDJStore = create<DJState>()(
         }
       },
 
+      setTrackBPM: (trackId, bpm) => {
+          set(state => ({
+              playlist: state.playlist.map(t => t.id === trackId ? { ...t, bpm } : t),
+              sharedCrate: state.sharedCrate.map(t => t.id === trackId ? { ...t, bpm } : t),
+              history: state.history.map(t => t.id === trackId ? { ...t, bpm } : t)
+          }));
+      },
       clearLocalCache: async () => {
         if (!confirm("This will permanently delete ALL local audio files and Saved Sets from this browser. Continue?")) return;
         try {
