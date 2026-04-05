@@ -142,7 +142,7 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
   }, [getTimeInfo]);
 
   return (
-    <div className={`bg-zinc-950 border-4 border-zinc-900 p-3 md:p-4 rounded-3xl w-full max-w-[480px] flex flex-col md:flex-row gap-3 md:gap-4 shadow-2xl relative select-none ${name === 'B' ? 'md:flex-row-reverse' : 'md:flex-row'} landscape:scale-[0.85] landscape:origin-center landscape:-my-4 translate-z-0`}>
+    <div className={`bg-zinc-950 border-4 border-zinc-900 p-3 md:p-4 rounded-3xl w-full max-w-[480px] flex flex-col md:flex-row gap-3 md:gap-4 shadow-2xl relative select-none ${name === 'B' ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
       
       {/* PITCH COLUMN - Responsive Order 2 */}
       <div className="flex flex-row md:flex-col items-center justify-center gap-4 md:gap-2 order-2 md:order-1">
@@ -178,15 +178,7 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
             <div className="flex justify-between items-start gap-2">
                <div className="flex-1 overflow-hidden">
                   <div className="flex items-center gap-1.5"><Music size={10} className="text-sky-400" /><span className="text-[10px] font-black text-white/90 truncate uppercase tracking-wider">{trackName}</span></div>
-                  <div className="text-[8px] font-bold truncate ml-4 uppercase">
-                      {!url ? (
-                          <span className="text-white/20">NO TRACK LOADED</span>
-                      ) : isLoaded ? (
-                          <span className="text-emerald-400/80">READY TO PLAY</span>
-                      ) : (
-                          <span className="text-orange-500 animate-pulse">DECODING BUFFER...</span>
-                      )}
-                  </div>
+                  <div className="text-[8px] font-bold text-white/40 truncate ml-4 uppercase">{isLoaded ? 'READY TO PLAY' : 'DECODING...'}</div>
                </div>
                <div className="flex flex-col items-center justify-center w-12 h-12">
                   <div className="text-2xl font-black italic text-emerald-400 leading-none tracking-tighter">{(bpm * pitch).toFixed(2)}</div>
@@ -199,8 +191,21 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
                   <div className="flex items-center gap-1 text-white/60"><span className="text-white/40 uppercase">Rem</span> <span ref={remainRef} className="text-emerald-400 w-10 text-right">0:00.0</span></div>
                </div>
             </div>
+            {/* SCROLLING WAVEFORM (ONDA GRANDE) */}
+            <div className="h-[60px] rounded bg-black/80 overflow-hidden relative border border-white/10 shadow-2xl">
+               {!audioController.isBufferLoaded ? (
+                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-20">
+                      <span className="text-[9px] text-white/30 font-black tracking-[0.4em] uppercase animate-pulse">Scanning track...</span>
+                   </div>
+               ) : (
+                   <DJWaveform url={url} trackId={track?.id} color={themeColor} resetTrigger={cueCount} getTimeInfo={getTimeInfo} />
+               )}
+               {/* Center Marker Line */}
+               <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white shadow-[0_0_10px_#fff] z-30"></div>
+            </div>
+
             {/* OVERVIEW WAVEFORM (ONDA PEQUEÑA) */}
-            <div className="h-[35px] rounded bg-black/60 overflow-hidden relative border border-white/5 flex items-center justify-center">
+            <div className="h-[25px] rounded bg-black/60 overflow-hidden relative border border-white/5 flex items-center justify-center">
                {!audioController.isBufferLoaded ? (
                    <span className="text-[7px] text-white/30 font-black tracking-[0.3em] uppercase animate-pulse">Analizando...</span>
                ) : (

@@ -152,10 +152,8 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
     const now = Tone.now();
 
     // FORCE ON-DEMAND CONTEXT ACTIVATION
-    if (Tone.context.state !== 'running') {
-        Tone.start();
-        Tone.context.resume();
-    }
+    Tone.start();
+    Tone.context.resume();
     
     if (isPlaying) {
       accumulatedPositionRef.current += (now - lastSyncTimeRef.current) * currentPitchRef.current;
@@ -178,10 +176,8 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
     const now = Tone.now();
 
     // FORCE ON-DEMAND CONTEXT ACTIVATION
-    if (Tone.context.state !== 'running') {
-        Tone.start();
-        Tone.context.resume();
-    }
+    Tone.start();
+    Tone.context.resume();
 
     // PAUSE RADIO WHEN MIXER STARTS
     useRadioStore.getState().pause();

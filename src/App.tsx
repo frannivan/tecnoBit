@@ -28,59 +28,10 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    console.log("Master Unlock Sequence Initiated...");
+    // UNLOCK AUDIO HARDWARE
+    await Tone.start();
+    console.log("Audio Context Started:", Tone.context.state);
     
-    // UNLOCK AUDIO HARDWARE & WEB AUDIO API
-    try {
-        await Tone.start();
-        await Tone.context.resume();
-        
-        // NATIVE BEEP TEST (Bypass Tone context temporarily)
-        try {
-            const actx = Tone.context.rawContext as AudioContext;
-            const osc = actx.createOscillator();
-            const gain = actx.createGain();
-            osc.connect(gain);
-            gain.connect(actx.destination);
-            gain.gain.setValueAtTime(0.01, actx.currentTime);
-            osc.start();
-            osc.stop(actx.currentTime + 0.1);
-        } catch(e) { console.warn("Native beep failed", e); }
-
-        // PRIMING 1: HTML5 Audio Elements (The Radio System)
-        const audio1 = document.getElementById('global-audio-player-1') as HTMLAudioElement;
-        const audio2 = document.getElementById('global-audio-player-2') as HTMLAudioElement;
-        
-        const unlockAudio = async (el: HTMLAudioElement | null) => {
-            if (!el) return;
-            try {
-                el.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAA+P/9P8DAA==";
-                await el.play();
-                el.pause();
-            } catch(e) {
-                console.warn(`Failed to unlock audio element ${el.id}:`, e);
-            }
-        };
-
-        if (audio1 || audio2) {
-            await Promise.all([unlockAudio(audio1), unlockAudio(audio2)]);
-        }
-
-        // PRIMING 2: Tone.js (Web Audio API)
-        const oscT = new Tone.Oscillator().toDestination();
-        oscT.start();
-        oscT.stop("+0.05");
-
-        // Ensure Master isn't muted
-        Tone.getDestination().mute = false;
-        Tone.getDestination().volume.value = 0;
-        
-        console.log("Audio Engine Ready. State:", Tone.context.state);
-    } catch (e) {
-        console.warn("Global audio unlock failed:", e);
-    }
-    
-    // ALWAYS proceed to app even if audio priming results in warnings
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
   };
@@ -93,8 +44,8 @@ function App() {
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
         </AnimatePresence>
 
-        {/* Sección 1: Radio - Ocultar en landscape móvil para foco en DJ */}
-        <section className="mt-8 transition-all duration-500 landscape:hidden lg:landscape:block">
+        {/* Sección 1: Radio - Restaurada y FUNCIONAL */}
+        <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
                <RadioUnit />
                <div className="mt-12">
@@ -103,10 +54,10 @@ function App() {
             </div>
         </section>
         
-        {/* Sección 2: DJ Console Prototype - Centrada y expandida en Landscape */}
-        <section className="flex flex-col items-center landscape:w-screen landscape:px-2">
+        {/* Sección 2: DJ Console Prototype */}
+        <section className="flex flex-col items-center">
              <DJConsole />
-        </section>
+         </section>
 
         <button 
             onClick={() => setShowHelp(true)}
