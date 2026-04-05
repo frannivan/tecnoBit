@@ -28,11 +28,12 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
+    console.log("Master Unlock Sequence Initiated...");
+    
     // UNLOCK AUDIO HARDWARE & WEB AUDIO API
     try {
-        console.log("Master Unlock Sequence Initiated...");
-        await Tone.context.resume();
         await Tone.start();
+        await Tone.context.resume();
         
         // PRIMING 1: HTML5 Audio Elements (The Radio System)
         const audio1 = document.getElementById('global-audio-player-1') as HTMLAudioElement;
@@ -40,30 +41,34 @@ function App() {
         
         const unlockAudio = async (el: HTMLAudioElement | null) => {
             if (!el) return;
-            el.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAA+P/9P8DAA==";
             try {
+                el.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAA+P/9P8DAA==";
                 await el.play();
                 el.pause();
-                console.log(`Unlocked Audio Element: ${el.id}`);
-            } catch(e) {}
+            } catch(e) {
+                console.warn(`Failed to unlock audio element ${el.id}:`, e);
+            }
         };
 
-        await Promise.all([unlockAudio(audio1), unlockAudio(audio2)]);
+        if (audio1 || audio2) {
+            await Promise.all([unlockAudio(audio1), unlockAudio(audio2)]);
+        }
 
         // PRIMING 2: Tone.js (Web Audio API)
         const osc = new Tone.Oscillator().toDestination();
         osc.start();
-        osc.stop("+0.01");
+        osc.stop("+0.02");
 
         // Ensure Master isn't muted
         Tone.getDestination().mute = false;
         Tone.getDestination().volume.value = 0;
         
-        console.log("Audio Engine Successfully Authorized. Context State:", Tone.context.state);
+        console.log("Audio Engine Ready. State:", Tone.context.state);
     } catch (e) {
-        console.warn("Audio Context unlock failed:", e);
+        console.warn("Global audio unlock failed:", e);
     }
     
+    // ALWAYS proceed to app even if audio priming results in warnings
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
   };
