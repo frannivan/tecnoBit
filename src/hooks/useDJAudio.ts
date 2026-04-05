@@ -152,6 +152,18 @@ export const useDJAudio = (url: string, trackId: string | null = null, name: 'A'
     }).catch(() => console.error("Tone load error"));
   }, [url, handleBufferLoaded]);
 
+  // ===============================================
+  // EXTERNAL PAUSE ENFORCER (Radio Mutual Exclusion)
+  // If the global store sets isPlaying to false, we MUST stop the engine.
+  // ===============================================
+  useEffect(() => {
+      if (!isPlaying && playerRef.current && playerRef.current.state === "started") {
+          const now = Tone.now();
+          internalRestartCountRef.current = 0;
+          playerRef.current.stop(now);
+      }
+  }, [isPlaying]);
+
   const togglePlay = useCallback(() => {
     if (!playerRef.current || !isBufferLoaded) return;
     const now = Tone.now();

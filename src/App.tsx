@@ -36,30 +36,28 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = () => {
-    Tone.start();
-    Tone.context.resume();
+  const handleStart = async () => {
+    try {
+        await Tone.start();
+        await Tone.context.resume();
 
-    // ---------------------------------------------------------
-    // PROFOUND ARCHITECTURAL FIX FOR iOS/MOBILE AUDIO LOCK
-    // Web Audio API (Tone.js) respects the physical Mute switch
-    // and can lose context priority. Native HTML5 <audio> does not.
-    // By keeping a silent <audio> element looping forever, we force 
-    // the system's AVAudioSession into 'Playback' mode, allowing 
-    // Tone.js to output freely regardless of the ringer switch.
-    // ---------------------------------------------------------
-    let silentKeeper = document.getElementById('ios-audio-keeper') as HTMLAudioElement;
-    if (!silentKeeper) {
-        silentKeeper = document.createElement('audio');
-        silentKeeper.id = 'ios-audio-keeper';
-        silentKeeper.loop = true;
-        silentKeeper.src = 'data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/';
-        document.body.appendChild(silentKeeper);
+        // ---------------------------------------------------------
+        // PROVEN iOS PRIMING SEQUENCE (From v1.2.9 stable)
+        // iOS Safari strictly requires an actual audio node to output
+        // sound during the touch event to unlock the hardware context.
+        // ---------------------------------------------------------
+        const osc = new Tone.Oscillator().toDestination();
+        osc.start();
+        osc.stop("+0.05");
+
+        Tone.getDestination().mute = false;
+        Tone.getDestination().volume.value = 0;
+
+        console.log("Audio Engine Successfully Authorized. Context State:", Tone.context.state);
+    } catch (e) {
+        console.warn("Audio Context unlock failed:", e);
     }
-    silentKeeper.play().catch(e => console.warn("PWA Keeper failed:", e));
 
-    console.log("Audio Initialized (Pro Keeper):", Tone.context.state);
-    
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
   };
