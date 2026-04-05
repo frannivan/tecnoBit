@@ -36,21 +36,25 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = async () => {
-    // HARD UNLOCK FOR MOBILE (BROWSERS PREFER HTML5 AUDIO AS KICKER)
+  const handleStart = () => {
+    // 1. HARD BRIDGE: Wake up hardware using NATIVE HTML5 audio (The path user says 'works')
     try {
-        const audioKick = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/');
-        audioKick.volume = 0.01;
-        await audioKick.play();
-        setTimeout(() => audioKick.pause(), 100);
-    } catch (e) {
-        console.warn("Audio hardware kick failed:", e);
-    }
+        const nativeKick = document.createElement('audio');
+        nativeKick.src = 'data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/';
+        nativeKick.volume = 0.1;
+        nativeKick.play().then(() => {
+            setTimeout(() => {
+                nativeKick.pause();
+                nativeKick.remove();
+            }, 500);
+        }).catch(e => console.warn("Native kick blocked:", e));
+    } catch (e) {}
 
-    // UNLOCK TONE.JS
-    await Tone.start();
-    await Tone.context.resume();
-    console.log("Audio Context Started:", Tone.context.state);
+    // 2. ACTIVATE Tone.js in the SAME user gesture stack
+    Tone.start();
+    Tone.context.resume();
+
+    console.log("Audio Initialized (Native Bridge):", Tone.context.state);
     
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);

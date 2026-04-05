@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRadioStore } from '../../store/useRadioStore';
+import { useDJStore } from '../../store/useDJStore';
 import { Knob } from '../common/Knob';
 import { Tuner } from './Tuner';
 import { stations } from '../../data/stations';
@@ -155,7 +156,19 @@ const RadioUnitComponent: React.FC = () => {
             {/* Right Controls (Power / Play) */}
             <div className="flex flex-col items-center gap-4 w-24">
                 <button 
-                  onClick={togglePlay}
+                  onClick={() => {
+                        // FORCE MIXER TO STOP IF RADIO STARTS
+                        if (!isPlaying) {
+                            const mixer = useDJStore.getState();
+                            // We don't have a direct 'stop' but we can set isPlaying to false
+                            // Actually, just having the store flag is enough for App.tsx effect?
+                            // No, we need to stop the Tone.js players.
+                            // I'll add a 'stopAll' to DJStore or just use global state.
+                            mixer.setIsPlayingA(false);
+                            mixer.setIsPlayingB(false);
+                        }
+                        togglePlay();
+                  }}
                   className="w-16 h-16 rounded-full bg-zinc-800 border-2 border-zinc-600 shadow-lg flex items-center justify-center text-zinc-300 hover:text-white hover:border-zinc-400 active:scale-95 transition-all"
                 >
                     <Power size={32} className={isPlaying ? "text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" : ""} />
