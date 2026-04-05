@@ -142,36 +142,38 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
   }, [getTimeInfo]);
 
   return (
-    <div className={`bg-zinc-950 border-4 border-zinc-900 p-4 rounded-3xl w-full max-w-[480px] flex gap-4 shadow-2xl relative select-none ${name === 'A' ? 'flex-row' : 'flex-row-reverse'}`}>
+    <div className={`bg-zinc-950 border-4 border-zinc-900 p-3 md:p-4 rounded-3xl w-full max-w-[480px] flex flex-col md:flex-row gap-3 md:gap-4 shadow-2xl relative select-none ${name === 'B' ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
       
-      {/* PITCH COLUMN */}
-      <div className="flex flex-col items-center">
-          <div className="mb-2 w-12 bg-zinc-900 rounded border border-white/5 text-center px-1 py-0.5 shadow-inner">
+      {/* PITCH COLUMN - Responsive Order 2 */}
+      <div className="flex flex-row md:flex-col items-center justify-center gap-4 md:gap-2 order-2 md:order-1">
+          <div className="w-12 bg-zinc-900 rounded border border-white/5 text-center px-1 py-0.5 shadow-inner">
              <span className="text-[8px] font-mono font-black text-emerald-400">{Number(pitchPercent) > 0 ? '+' : ''}{pitchPercent}%</span>
           </div>
           <button 
               onClick={() => { setPitch(1.0); applyPitch(1.0); }}
-              className="mb-2 w-6 h-6 bg-zinc-900 border border-white/20 rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-xl hover:border-emerald-400 group"
+              className="w-6 h-6 bg-zinc-900 border border-white/20 rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-xl hover:border-emerald-400 group"
               title="Reset Pitch to 0"
           >
              <span className="text-[9px] font-black text-zinc-500 group-hover:text-emerald-400">0</span>
           </button>
-          <ProfessionalFader 
-            label="Pitch" 
-            value={pitch * 100} 
-            onChange={(v) => { setPitch(v/100); applyPitch(v/100); }} 
-            min={90} 
-            max={110} 
-            color={themeColor} 
-          />
-          <div className="flex flex-row gap-2 mt-2">
+          <div className="scale-75 md:scale-100 origin-center">
+            <ProfessionalFader 
+                label="Pitch" 
+                value={pitch * 100} 
+                onChange={(v) => { setPitch(v/100); applyPitch(v/100); }} 
+                min={90} 
+                max={110} 
+                color={themeColor} 
+            />
+          </div>
+          <div className="flex flex-row gap-2">
               <button onMouseDown={() => startRepeat(-1)} onMouseUp={stopRepeat} onMouseLeave={stopRepeat} className="w-7 h-7 bg-zinc-900 border border-white/5 rounded-full flex items-center justify-center active:bg-zinc-800 shadow-xl"><ChevronLeft size={14} className="text-zinc-500" /></button>
               <button onMouseDown={() => startRepeat(1)} onMouseUp={stopRepeat} onMouseLeave={stopRepeat} className="w-7 h-7 bg-zinc-900 border border-white/5 rounded-full flex items-center justify-center active:bg-zinc-800 shadow-xl"><ChevronRight size={14} className="text-zinc-500" /></button>
           </div>
       </div>
 
-      {/* MAIN SCREEN AREA */}
-      <div className="flex-1 flex flex-col gap-3">
+      {/* MAIN SCREEN AREA - Responsive Order 1 */}
+      <div className="flex-1 flex flex-col gap-3 order-1 md:order-2">
           <div className="bg-[#0c0c0c] p-3 rounded-xl border-x-4 border-zinc-800 shadow-2xl relative overflow-hidden flex flex-col gap-2">
             <div className="flex justify-between items-start gap-2">
                <div className="flex-1 overflow-hidden">
@@ -248,12 +250,12 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
           </div>
       </div>
 
-      {/* GAIN AND EQ SLIDER STRIP ON THE SIDE (VERTICAL) */}
-      <div className="flex flex-col justify-center items-center bg-zinc-900/40 p-2 py-4 rounded-2xl border border-white/5 gap-3 shadow-inner h-full shrink-0 min-w-[50px]">
+      {/* GAIN AND EQ SLIDER STRIP - Responsive Order 3 */}
+      <div className="flex flex-row md:flex-col justify-center items-center bg-zinc-900/40 p-2 py-2 md:py-4 rounded-2xl border border-white/5 gap-4 md:gap-3 shadow-inner shrink-0 order-3 md:order-3">
           <RotaryKnob label="HI" value={eq.high} onChange={(v) => handleEQChange('high', v)} min={-15} max={15} themeColor={themeColor} />
           <RotaryKnob label="MID" value={eq.mid} onChange={(v) => handleEQChange('mid', v)} min={-15} max={15} themeColor={themeColor} />
           <RotaryKnob label="LOW" value={eq.low} onChange={(v) => handleEQChange('low', v)} min={-15} max={15} themeColor={themeColor} />
-          <div className="w-full h-px bg-white/10 my-1"></div>
+          <div className="hidden md:block w-full h-px bg-white/10 my-1"></div>
           <RotaryKnob label="GAIN" value={localGain} onChange={setLocalGain} min={0} max={150} themeColor={themeColor} />
       </div>
     </div>

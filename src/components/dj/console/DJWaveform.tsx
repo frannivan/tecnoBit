@@ -22,7 +22,7 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
 
   // Persistence check for mobile drawing
   const storedData = useDJStore(state => trackId ? state.audioData[trackId] : null);
-  const activeData = audioData || (storedData ? { rms: new Float32Array(storedData.rms), duration: 0 } : null);
+  const activeData = audioData || (storedData ? { rms: new Float32Array(storedData.rms), duration: storedData.duration || 0 } : null);
 
   // RESET needles on track change or reset trigger
   useEffect(() => {

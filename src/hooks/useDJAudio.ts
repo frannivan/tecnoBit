@@ -91,7 +91,7 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
     
     // SHARED STORE FOR PERSISTENCE
     if (trackId) {
-        useDJStore.getState().setAudioData(trackId, { rms: visualData.rms });
+        useDJStore.getState().setAudioData(trackId, { rms: visualData.rms, duration: dur });
     }
     // ===============================================
 

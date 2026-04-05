@@ -29,10 +29,10 @@ interface DJState {
   currentPlaylistIndex: number;
   activeTrackId: string | null;
   isLoadingShared: boolean;
-  audioData: Record<string, { rms: number[] }>;
+  audioData: Record<string, { rms: number[], duration: number }>;
   
   // Actions
-  setAudioData: (trackId: string, data: { rms: number[] }) => void;
+  setAudioData: (trackId: string, data: { rms: number[], duration: number }) => void;
   addToPlaylist: (track: Track) => boolean;
   removeFromPlaylist: (id: string) => void;
   addToHistory: (track: Track) => void;
