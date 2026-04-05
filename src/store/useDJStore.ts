@@ -26,11 +26,13 @@ interface DJState {
   history: Track[];
   offlineSets: StoredOfflineSet[]; // Array of saved sets
   sharedCrate: Track[]; // Global files from Supabase
-  currentPlaylistIndex: number; // Track which song is playing in the playlist
-  activeTrackId: string | null; // ID of the currently playing standalone track
+  currentPlaylistIndex: number;
+  activeTrackId: string | null;
   isLoadingShared: boolean;
+  audioData: Record<string, { rms: number[] }>;
   
   // Actions
+  setAudioData: (trackId: string, data: { rms: number[] }) => void;
   addToPlaylist: (track: Track) => boolean;
   removeFromPlaylist: (id: string) => void;
   addToHistory: (track: Track) => void;
@@ -66,6 +68,11 @@ export const useDJStore = create<DJState>()(
       activeTrackId: null,
       isLoadingShared: false,
       history: [],
+      audioData: {},
+
+      setAudioData: (trackId, data) => set(state => ({
+        audioData: { ...state.audioData, [trackId]: data }
+      })),
 
       setActiveTrackId: (id) => set({ activeTrackId: id }),
 
@@ -500,7 +507,8 @@ export const useDJStore = create<DJState>()(
       partialize: (state) => ({ 
         playlist: state.playlist,
         currentPlaylistIndex: state.currentPlaylistIndex,
-        history: state.history
+        history: state.history,
+        audioData: state.audioData
       }),
     }
   )

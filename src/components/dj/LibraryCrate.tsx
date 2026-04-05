@@ -11,7 +11,6 @@ export const DJDeck: React.FC = () => {
   const { 
     history, 
     playlist, 
-    addToPlaylist, 
     sharedCrate, 
     isLoadingShared, 
     fetchSharedCrate, 

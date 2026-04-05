@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as Tone from 'tone';
+import { useRadioStore } from '../store/useRadioStore';
+import { useDJStore } from '../store/useDJStore';
 
 // High-precision timing
 Tone.context.lookAhead = 0.05;
@@ -25,7 +27,7 @@ export interface DJAudioController {
   stopScrub: () => void;
 }
 
-export const useDJAudio = (url: string): DJAudioController => {
+export const useDJAudio = (url: string, trackId: string | null = null): DJAudioController => {
   const playerRef = useRef<Tone.Player | null>(null);
   const eqRef = useRef<Tone.EQ3 | null>(null);
   const meterRef = useRef<Tone.Meter | null>(null);
@@ -71,31 +73,30 @@ export const useDJAudio = (url: string): DJAudioController => {
     beatOffsetRef.current = Math.max(0, (maxIdx / sampleRate) - 0.005); // Tighter offset
 
     // === [EXPERIMENTAL SINGLE-LOAD OPTIMIZATION] ===
-    // Descomentar este bloque y añadir 'audioData' al estado/export si se desea 
-    // evitar la carga pesada del CPU decodificando el MP3 múltiples veces. 
-    // (Aumenta mucho la velocidad al cargar un track, pero requiere ajustar gráficos).
-    /*
     const dur = player.buffer.duration;
-    const targetPoints = Math.round(dur * 350);
+    const targetPoints = 500; // Standard 500 points for mobile waves
     const blockSize = Math.floor(buffer.length / targetPoints);
-    const peaksArray = new Float32Array(targetPoints);
     const rmsArray = new Float32Array(targetPoints);
     for (let i = 0; i < targetPoints; i++) {
-        let max = 0; let sumSq = 0;
+        let sumSq = 0;
         for (let j = 0; j < blockSize; j++) {
             const val = buffer[i * blockSize + j];
-            if (Math.abs(val) > max) max = Math.abs(val);
             sumSq += val * val;
         }
-        peaksArray[i] = max;
         rmsArray[i] = Math.sqrt(sumSq / blockSize);
     }
-    // setAudioData({ peaks: peaksArray, rms: rmsArray, duration: dur });
-    */
+    
+    const visualData = { rms: Array.from(rmsArray), duration: dur };
+    setAudioData({ rms: rmsArray, duration: dur });
+    
+    // SHARED STORE FOR PERSISTENCE
+    if (trackId) {
+        useDJStore.getState().setAudioData(trackId, { rms: visualData.rms });
+    }
     // ===============================================
 
     setIsBufferLoaded(true);
-  }, []);
+  }, [trackId]);
 
   useEffect(() => {
     const player = new Tone.Player({
@@ -143,18 +144,26 @@ export const useDJAudio = (url: string): DJAudioController => {
 
     playerRef.current.load(url).then(() => {
         if (playerRef.current) handleBufferLoaded(playerRef.current);
-    }).catch(e => console.error("Tone load error:", e));
+    }).catch(() => console.error("Tone load error"));
   }, [url, handleBufferLoaded]);
 
   const togglePlay = useCallback(() => {
     if (!playerRef.current || !isBufferLoaded) return;
     const now = Tone.now();
+
+    // FORCE ON-DEMAND CONTEXT ACTIVATION
+    Tone.start();
+    Tone.context.resume();
+    
     if (isPlaying) {
       accumulatedPositionRef.current += (now - lastSyncTimeRef.current) * currentPitchRef.current;
       internalRestartCountRef.current = 0; // Real intentional stop
       playerRef.current.stop(now);
       setIsPlaying(false);
     } else {
+      // PAUSE RADIO WHEN MIXER STARTS
+      useRadioStore.getState().pause();
+
       const offset = accumulatedPositionRef.current % (durationRef.current || 1);
       playerRef.current.start(now, offset);
       lastSyncTimeRef.current = now;
@@ -165,13 +174,21 @@ export const useDJAudio = (url: string): DJAudioController => {
   const handleCue = useCallback(() => {
     if (!playerRef.current || !isBufferLoaded) return;
     const now = Tone.now();
+
+    // FORCE ON-DEMAND CONTEXT ACTIVATION
+    Tone.start();
+    Tone.context.resume();
+
+    // PAUSE RADIO WHEN MIXER STARTS
+    useRadioStore.getState().pause();
+
     internalRestartCountRef.current++;
     playerRef.current.stop(now);
     accumulatedPositionRef.current = beatOffsetRef.current;
     playerRef.current.start(now, beatOffsetRef.current);
     lastSyncTimeRef.current = now;
     setIsPlaying(true);
-    setCueCount(prev => prev + 1);
+    setCueCount((c: number) => c + 1);
   }, [isBufferLoaded]);
 
   const stopCue = useCallback(() => {

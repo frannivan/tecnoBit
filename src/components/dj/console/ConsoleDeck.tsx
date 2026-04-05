@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, AudioLines, Gauge } from 'lucide-react';
+import { Play, Pause, Gauge } from 'lucide-react';
 import { useDJAudio } from '../../../hooks/useDJAudio';
 import { DJWaveform } from './DJWaveform';
 

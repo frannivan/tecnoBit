@@ -60,7 +60,6 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
                   onClick={() => setActiveTab('playlist')}
                   className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'playlist' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'text-zinc-500 hover:text-white'}`}
                 >
-                  <div className="flex items-center gap-2"><Database size={12}/> Master List</div>
                 </button>
                 <button 
                   onClick={() => setActiveTab('shared')}

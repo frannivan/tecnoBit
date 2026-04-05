@@ -69,8 +69,8 @@ const DJConsoleComponent: React.FC = () => {
   const setTrackBPM = useDJStore(state => state.setTrackBPM);
   const hasInteracted = useRadioStore(state => state.hasInteracted);
 
-  const audioA = useDJAudio(urlA);
-  const audioB = useDJAudio(urlB);
+  const audioA = useDJAudio(urlA, trackIdA);
+  const audioB = useDJAudio(urlB, trackIdB);
 
   const findTrackBPM = (u: string, n: string) => {
       const all = [...playlist, ...sharedCrate, ...history];
@@ -195,9 +195,9 @@ const DJConsoleComponent: React.FC = () => {
              <DJWaveform url={urlB} color="#f97316" resetTrigger={audioB.cueCount} getTimeInfo={audioB.getTimeInfo} />
              <div className="absolute bottom-2 left-6 text-[10px] font-black italic text-orange-500/90 uppercase tracking-[0.5em] z-40">MASTER DECK B - {trackNameB}</div>
           </div>
-          <div className="absolute inset-y-0 left-1/2 w-[2px] bg-white pointer-events-none z-[100] shadow-[0_0_15px_#fff]">
-              <div className="absolute top-0 -left-1.5 w-4 h-4 bg-white rotate-45" />
-              <div className="absolute bottom-0 -left-1.5 w-4 h-4 bg-white rotate-45" />
+          <div className="absolute inset-y-0 left-1/2 w-[2px] bg-yellow-400 pointer-events-none z-[100] shadow-[0_0_15px_#fbbf24]">
+              <div className="absolute top-0 -left-1.5 w-4 h-4 bg-yellow-400 rotate-45" />
+              <div className="absolute bottom-0 -left-1.5 w-4 h-4 bg-yellow-400 rotate-45" />
           </div>
       </div>
 
@@ -220,8 +220,8 @@ const DJConsoleComponent: React.FC = () => {
         />
 
         {/* MIXER */}
-        <div className="flex flex-col items-center gap-4 bg-zinc-950 border-x-4 border-zinc-900 px-6 py-6 rounded-3xl shadow-[0_45px_90px_rgba(0,0,0,0.9)] min-w-[260px]">
-          <div className="flex items-center gap-8 h-64">
+        <div className="flex flex-col items-center gap-4 bg-zinc-950 border-x-4 border-zinc-900 px-3 md:px-6 py-6 rounded-3xl shadow-[0_45px_90px_rgba(0,0,0,0.9)] min-w-[240px] md:min-w-[260px]">
+          <div className="flex items-center gap-3 md:gap-8 h-64">
              <div className="flex flex-col items-center h-full gap-6">
                 <button 
                   onClick={() => selectedTrack && handleLoadA(selectedTrack)}
@@ -231,7 +231,7 @@ const DJConsoleComponent: React.FC = () => {
                 </button>
                 <ProfessionalFader label="CH 1" value={volA} onChange={setVolA} min={0} max={100} color="#10b981" />
              </div>
-             <div className="flex gap-2.5 pt-16 pb-6 h-full border-x border-white/5 px-3 bg-[#050505] rounded-xl shadow-inner">
+             <div className="flex gap-2 pt-16 pb-6 h-full border-x border-white/5 px-2 md:px-3 bg-[#050505] rounded-xl shadow-inner">
                 <VUMeter getLevel={audioA.getLevel} isPlaying={audioA.isPlaying} />
                 <VUMeter getLevel={audioB.getLevel} isPlaying={audioB.isPlaying} />
              </div>

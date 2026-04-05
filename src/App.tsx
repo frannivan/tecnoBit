@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import * as Tone from 'tone';
 import { MainLayout } from './components/layout/MainLayout';
 import { RadioUnit } from './components/radio/RadioUnit';
 import { DJConsole } from './components/dj/console/DJConsole';
@@ -26,7 +27,11 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    // UNLOCK AUDIO HARDWARE
+    await Tone.start();
+    console.log("Audio Context Started:", Tone.context.state);
+    
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
   };

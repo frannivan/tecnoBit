@@ -1,7 +1,5 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRadioStore } from '../store/useRadioStore';
-import { useDJStore } from '../store/useDJStore';
-import { getTrackBlob } from '../utils/indexedDB';
 
 export const useAudioPlayer = () => {
   const currentStation = useRadioStore(state => state.currentStation);
@@ -11,9 +9,7 @@ export const useAudioPlayer = () => {
   const activeDeck = useRadioStore(state => state.activeDeck);
   
   const setStation = useRadioStore(state => state.setStation);
-  const setActiveDeck = useRadioStore(state => state.setActiveDeck);
   const setLoading = useRadioStore(state => state.setLoading);
-  const setError = useRadioStore(state => state.setError);
   const pause = useRadioStore(state => state.pause);
   
   const stateRef = useRef({
@@ -36,7 +32,7 @@ export const useAudioPlayer = () => {
     };
   }, [currentStation, isPlaying, masterVolume, isMuted, activeDeck]);
 
-  const fadeInterval = useRef<number | null>(null);
+
 
   // FUNCIÓN PARA SILENCIAR TODO LO QUE NO SEA CONSOLA
   const getAudio = (num: 1 | 2) => {
@@ -51,64 +47,7 @@ export const useAudioPlayer = () => {
      return el;
   };
 
-  const triggerCrossfade = useCallback(() => {
-    if (stateRef.current.nextTrackTriggered) return;
-    const currentSt = stateRef.current.currentStation;
-    if (currentSt?.country !== 'Playlist') return;
 
-    const djStore = useDJStore.getState();
-    const nextTrack = djStore.playNextTrack();
-    if (!nextTrack || !nextTrack.audioUrl) return; 
-
-    stateRef.current.nextTrackTriggered = true;
-    const currentDeck = stateRef.current.activeDeck;
-    const nextPlayerNum = currentDeck === 1 ? 2 : 1;
-    const nextPlayer = getAudio(nextPlayerNum as 1 | 2);
-    const currentPlayer = getAudio(currentDeck as 1 | 2);
-
-    if (nextPlayer && currentPlayer) {
-        if (fadeInterval.current) clearInterval(fadeInterval.current);
-        const initFade = async () => {
-            let finalUrl = nextTrack.audioUrl;
-            nextPlayer.src = finalUrl || '';
-            nextPlayer.volume = 0;
-            nextPlayer.load();
-
-            nextPlayer.play().then(() => {
-                setActiveDeck(nextPlayerNum as 1 | 2);
-                setStation({
-                    id: nextTrack.id,
-                    name: nextTrack.title,
-                    streamUrl: nextTrack.audioUrl || '',
-                    genre: nextTrack.artist,
-                    country: 'Playlist',
-                    playlistItemId: nextTrack.playlistItemId
-                });
-
-                let step = 0;
-                const totalSteps = 60; 
-                const initialVol = stateRef.current.masterVolume;
-
-                fadeInterval.current = window.setInterval(() => {
-                    step++;
-                    const progress = step / totalSteps;
-                    currentPlayer.volume = Math.max(0, initialVol * (1 - progress));
-                    nextPlayer.volume = Math.min(initialVol, initialVol * progress);
-
-                    if (step >= totalSteps) {
-                        if (fadeInterval.current) clearInterval(fadeInterval.current);
-                        currentPlayer.pause();
-                        currentPlayer.src = "";
-                        stateRef.current.nextTrackTriggered = false;
-                    }
-                }, 50);
-            }).catch(() => {
-                stateRef.current.nextTrackTriggered = false;
-            });
-        };
-        initFade();
-    }
-  }, [setActiveDeck, setStation]);
 
   useEffect(() => {
     const audio1 = getAudio(1);
@@ -146,16 +85,21 @@ export const useAudioPlayer = () => {
             audio.src = currentStation.streamUrl;
             audio.load();
         }
-        audio.play().catch(() => {});
+        audio.play().then(() => {
+            setLoading(false);
+        }).catch(() => {
+            setLoading(false);
+        });
     } else {
+        setLoading(false);
         audio.pause();
         audio.src = ""; // DESTREUIMOS EL AUDIO PARA EVITAR ECOS
     }
 
-    // MUTE AGRESIVO
-    audio.volume = 0; 
-    audio.muted = true;
-  }, [currentStation, isPlaying, activeDeck]);
+    // RESTORE VOLUME (FIXED RADIO SILENCE)
+    audio.volume = masterVolume; 
+    audio.muted = isMuted;
+  }, [currentStation, isPlaying, activeDeck, masterVolume, isMuted]);
 
   return null;
 };

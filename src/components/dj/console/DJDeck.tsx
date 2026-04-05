@@ -65,8 +65,7 @@ export const ProfessionalFader: React.FC<{
 };
 
 export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController, themeColor, externalVolume, url, trackName, isLoaded, bpm, track, pitch, setPitch, onSync }) => {
-  const { isPlaying, togglePlay, handleCue, stopCue, applyVolume, applyEQ, applyPitch, nudge, cueCount, getTimeInfo } = audioController;
-  const playlist = useDJStore(state => state.playlist);
+  const { isPlaying, togglePlay, handleCue, stopCue, applyVolume, applyEQ, applyPitch, cueCount, getTimeInfo } = audioController;
   const addToHistory = useDJStore(state => state.addToHistory);
   const [eq, setEQ] = useState({ low: 0, mid: 0, high: 0 });
   const [localGain, setLocalGain] = useState(100);
@@ -190,22 +189,26 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
                   <div className="flex items-center gap-1 text-white/60"><span className="text-white/40 uppercase">Rem</span> <span ref={remainRef} className="text-emerald-400 w-10 text-right">0:00.0</span></div>
                </div>
             </div>
-            <div className="h-[30px] rounded bg-black/60 overflow-hidden relative border border-white/5 flex items-center justify-center">
+            {/* SCROLLING WAVEFORM (ONDA GRANDE) */}
+            <div className="h-[60px] rounded bg-black/80 overflow-hidden relative border border-white/10 shadow-2xl">
+               {!audioController.isBufferLoaded ? (
+                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-20">
+                      <span className="text-[9px] text-white/30 font-black tracking-[0.4em] uppercase animate-pulse">Scanning track...</span>
+                   </div>
+               ) : (
+                   <DJWaveform url={url} trackId={track?.id} color={themeColor} resetTrigger={cueCount} getTimeInfo={getTimeInfo} />
+               )}
+               {/* Center Marker Line */}
+               <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white shadow-[0_0_10px_#fff] z-30"></div>
+            </div>
+
+            {/* OVERVIEW WAVEFORM (ONDA PEQUEÑA) */}
+            <div className="h-[25px] rounded bg-black/60 overflow-hidden relative border border-white/5 flex items-center justify-center">
                {!audioController.isBufferLoaded ? (
                    <span className="text-[7px] text-white/30 font-black tracking-[0.3em] uppercase animate-pulse">Analizando...</span>
                ) : (
-                   <div 
-                      className="w-full h-full origin-left"
-                      style={{ animation: 'revealLtoR 4.5s linear forwards' }}
-                   >
-                      <style>{`
-                         @keyframes revealLtoR {
-                            0% { clip-path: inset(0 100% 0 0); opacity: 0; }
-                            5% { clip-path: inset(0 95% 0 0); opacity: 1; }
-                            100% { clip-path: inset(0 0 0 0); opacity: 1; }
-                         }
-                      `}</style>
-                      <DJWaveform url={url} color={themeColor} isOverview resetTrigger={cueCount} getTimeInfo={getTimeInfo} />
+                   <div className="w-full h-full">
+                      <DJWaveform url={url} trackId={track?.id} color={themeColor} isOverview resetTrigger={cueCount} getTimeInfo={getTimeInfo} />
                    </div>
                )}
             </div>

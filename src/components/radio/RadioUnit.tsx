@@ -27,7 +27,7 @@ const RadioUnitComponent: React.FC = () => {
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative chrome-frame rounded-xl p-8 overflow-hidden border-4 border-zinc-500"
+        className="relative chrome-frame rounded-xl p-4 md:p-8 overflow-hidden border-4 border-zinc-500"
       >
         {/* Horizontal Grill Texture Background */}
         <div className="absolute inset-0 chrome-grill opacity-90 pointer-events-none z-0"></div>
@@ -41,7 +41,7 @@ const RadioUnitComponent: React.FC = () => {
             <span className="text-[10px] font-mono text-zinc-500">{isPlaying ? 'LIVE' : 'OFF'}</span>
         </div>
 
-        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center justify-between">
+        <div className="relative z-10 flex flex-col md:flex-row gap-4 md:gap-8 items-center justify-between">
             
              {/* Left Controls (Volume) */}
             <div className="flex flex-col items-center gap-4 w-24">
@@ -100,7 +100,7 @@ const RadioUnitComponent: React.FC = () => {
             </div>
 
             {/* Center Display (Frequency & Info) */}
-            <div className={`flex-1 w-full bg-black rounded-sm border-4 border-zinc-600 shadow-inner p-4 relative overflow-hidden min-h-[160px] flex flex-col justify-center items-center group transition-all duration-1000 ${isPlaying ? 'shadow-[inset_0_0_20px_rgba(249,115,22,0.1)]' : 'opacity-80'}`}>
+            <div className={`flex-1 w-full bg-black rounded-sm border-4 border-zinc-600 shadow-inner p-4 relative overflow-hidden min-h-[120px] md:min-h-[160px] flex flex-col justify-center items-center group transition-all duration-1000 ${isPlaying ? 'shadow-[inset_0_0_20px_rgba(249,115,22,0.1)]' : 'opacity-80'}`}>
                  {/* Glass Reflection */}
                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-20"></div>
                  

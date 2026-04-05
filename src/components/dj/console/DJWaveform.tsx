@@ -1,21 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import { useDJStore } from '../../../store/useDJStore';
 
 interface Props {
   url: string;
+  trackId?: string | null;
   audioData?: { rms: Float32Array; duration: number } | null;
   color: string;
   isOverview?: boolean;
+  isPlaying?: boolean;
   resetTrigger?: number;
   getTimeInfo?: () => { current: number, duration: number };
 }
 
-export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview = false, resetTrigger = 0, getTimeInfo }) => {
+export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, isOverview = false, isPlaying = false, resetTrigger = 0, getTimeInfo }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const moverRef = useRef<HTMLDivElement>(null);
   const needleRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WaveSurfer | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  // Persistence check for mobile drawing
+  const storedData = useDJStore(state => trackId ? state.audioData[trackId] : null);
+  const activeData = audioData || (storedData ? { rms: new Float32Array(storedData.rms), duration: 0 } : null);
 
   // RESET needles on track change or reset trigger
   useEffect(() => {
@@ -24,7 +31,7 @@ export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview 
     if (wsRef.current && isReady) {
         try { wsRef.current.seekTo(0); } catch(e) {}
     }
-  }, [resetTrigger, isReady]);
+  }, [resetTrigger, isReady, isPlaying]);
 
   // INITIALIZATION (CORE ESTABLE REVERTIDO)
   useEffect(() => {
@@ -55,8 +62,6 @@ export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview 
     };
 
     if (isOverview) {
-        // En lugar de barras, dibujamos nosotros mismos la onda aplicando un multiplicador exponencial.
-        // Esto hace que las partes ruidosas bajen visualmente, separando los bajos de los snares y creando la textura de Pioneer.
         config.renderFunction = (channels: any, ctx: any) => {
             const { width, height } = ctx.canvas;
             const channel = channels[0];
@@ -67,14 +72,11 @@ export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview 
             ctx.lineWidth = 1;
             ctx.beginPath();
 
-            // Píxeles por cada línea dibujada (1 = contínuo)
             const step = 1; 
             const pointsPerPixel = Math.max(1, Math.floor(length / width));
 
             for (let i = 0; i < width; i += step) {
                 const startIdx = Math.floor((i / width) * length);
-                
-                // Calcular la energía promedio (RMS), esto devuelve la textura original de Pioneer CDJ
                 let sumSq = 0;
                 let validPoints = 0;
                 for (let j = 0; j < pointsPerPixel * step; j++) {
@@ -86,8 +88,6 @@ export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview 
                     }
                 }
                 const rms = validPoints > 0 ? Math.sqrt(sumSq / validPoints) : 0;
-
-                // Compresión visual original EXACTA
                 let displayVal = Math.pow(rms, 0.6) * 1.25; 
                 if (displayVal > 0.85) displayVal = 0.85; 
                 if (displayVal < 0.1 && rms > 0) displayVal = 0.1; 
@@ -105,14 +105,41 @@ export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview 
         config.barHeight = 0.9;
     }
 
-    const ws = WaveSurfer.create(config);
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      if (activeData) {
+         const h = isOverview ? 35 : 100;
+         const container = containerRef.current;
+         if (container) {
+            container.innerHTML = '';
+            // CALCULATE DYNAMIC WIDTH FOR SCROLLING
+            const duration = activeData.duration || 0;
+            const scrollWidth = isOverview ? container.clientWidth : (duration * 350);
+            if (!isOverview && moverRef.current) {
+                moverRef.current.style.width = `${Math.ceil(scrollWidth)}px`;
+            }
 
-    // === [EXPERIMENTAL SINGLE-LOAD OPTIMIZATION] ===
-    // Si la optimización en useDJAudio está encendida, cambiar 'ws.load(url)' por lo siguiente:
-    // const arr = isOverview ? audioData.rms : audioData.peaks;
-    // ws.load('', [arr], audioData.duration);
-    // ===============================================
-    
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.ceil(scrollWidth);
+            canvas.height = h;
+            container.appendChild(canvas);
+            const ctx = canvas.getContext('2d')!;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            const peaks = activeData.rms;
+            for (let i = 0; i < canvas.width; i++) {
+                const idx = Math.floor((i / canvas.width) * peaks.length);
+                const val = peaks[idx] * (h / 2);
+                ctx.moveTo(i, (h/2) - val);
+                ctx.lineTo(i, (h/2) + val);
+            }
+            ctx.stroke();
+         }
+      }
+      setIsReady(true);
+      return;
+    }
+    const ws = WaveSurfer.create(config);
     ws.load(url);
 
     ws.on('ready', () => {
@@ -125,9 +152,8 @@ export const DJWaveform: React.FC<Props> = ({ url, audioData, color, isOverview 
 
     wsRef.current = ws;
     return () => ws.destroy();
-  }, [url, audioData, isOverview, color]);
+  }, [url, activeData, isOverview, color]);
 
-  // ANIMATION LOOP (Zero-lag DOM tracking)
   useEffect(() => {
     let raf: number;
     const update = () => {
