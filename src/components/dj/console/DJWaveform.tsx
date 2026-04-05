@@ -164,7 +164,7 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
                 if (needleRef.current) needleRef.current.style.left = `${prog}%`;
             } else {
                 if (moverRef.current) {
-                    moverRef.current.style.transform = `translateX(-${prog}%)`;
+                    moverRef.current.style.transform = `translateX(calc(50% - ${prog}%))`;
                 }
             }
         }
@@ -178,8 +178,8 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
     <div className="w-full h-full relative flex items-center overflow-hidden bg-black">
       <div 
         ref={moverRef}
-        className={`h-full ${isOverview ? 'w-full shadow-inner' : 'absolute left-1/2 flex items-center'}`}
-        style={{ width: isOverview ? '100%' : '40000px', transform: 'translateX(0%)' }}
+        className={`h-full ${isOverview ? 'w-full shadow-inner' : 'absolute left-0 flex items-center'}`}
+        style={{ width: isOverview ? '100%' : '50000px', transform: 'translateX(50%)' }}
       >
           <div ref={containerRef} className="w-full h-full" />
       </div>
