@@ -28,9 +28,22 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    // UNLOCK AUDIO HARDWARE
-    await Tone.start();
-    console.log("Audio Context Started:", Tone.context.state);
+    // UNLOCK AUDIO HARDWARE & WEB AUDIO API
+    try {
+        await Tone.start();
+        await Tone.context.resume();
+        
+        // PRIMING: Silent dummy sound to bypass mobile autoplay policies for both WebAudio and HTML5 Audio
+        const dummy = document.createElement('audio');
+        dummy.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAA+P/9P8DAA=="; 
+        await dummy.play();
+        dummy.pause();
+        dummy.remove();
+        
+        console.log("Audio Engine Successfully Authorized:", Tone.context.state);
+    } catch (e) {
+        console.warn("Audio Context unlock failed:", e);
+    }
     
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
