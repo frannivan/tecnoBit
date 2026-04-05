@@ -30,8 +30,12 @@ interface DJState {
   activeTrackId: string | null;
   isLoadingShared: boolean;
   audioData: Record<string, { rms: number[], duration: number }>;
+  isPlayingA: boolean;
+  isPlayingB: boolean;
   
   // Actions
+  setIsPlayingA: (playing: boolean) => void;
+  setIsPlayingB: (playing: boolean) => void;
   setAudioData: (trackId: string, data: { rms: number[], duration: number }) => void;
   addToPlaylist: (track: Track) => boolean;
   removeFromPlaylist: (id: string) => void;
@@ -69,10 +73,15 @@ export const useDJStore = create<DJState>()(
       isLoadingShared: false,
       history: [],
       audioData: {},
+      isPlayingA: false,
+      isPlayingB: false,
 
       setAudioData: (trackId, data) => set(state => ({
         audioData: { ...state.audioData, [trackId]: data }
       })),
+
+      setIsPlayingA: (playing) => set({ isPlayingA: playing }),
+      setIsPlayingB: (playing) => set({ isPlayingB: playing }),
 
       setActiveTrackId: (id) => set({ activeTrackId: id }),
 

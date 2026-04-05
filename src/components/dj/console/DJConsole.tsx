@@ -69,8 +69,8 @@ const DJConsoleComponent: React.FC = () => {
   const setTrackBPM = useDJStore(state => state.setTrackBPM);
   const hasInteracted = useRadioStore(state => state.hasInteracted);
 
-  const audioA = useDJAudio(urlA, trackIdA);
-  const audioB = useDJAudio(urlB, trackIdB);
+  const audioA = useDJAudio(urlA, trackIdA, 'A');
+  const audioB = useDJAudio(urlB, trackIdB, 'B');
 
   const findTrackBPM = (u: string, n: string) => {
       const all = [...playlist, ...sharedCrate, ...history];

@@ -27,7 +27,7 @@ export interface DJAudioController {
   stopScrub: () => void;
 }
 
-export const useDJAudio = (url: string, trackId: string | null = null): DJAudioController => {
+export const useDJAudio = (url: string, trackId: string | null = null, name: 'A' | 'B'): DJAudioController => {
   const playerRef = useRef<Tone.Player | null>(null);
   const eqRef = useRef<Tone.EQ3 | null>(null);
   const meterRef = useRef<Tone.Meter | null>(null);
@@ -160,6 +160,8 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
       internalRestartCountRef.current = 0; // Real intentional stop
       playerRef.current.stop(now);
       setIsPlaying(false);
+      if (name === 'A') useDJStore.getState().setIsPlayingA(false);
+      else useDJStore.getState().setIsPlayingB(false);
     } else {
       // PAUSE RADIO WHEN MIXER STARTS
       useRadioStore.getState().pause();
@@ -168,8 +170,10 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
       playerRef.current.start(now, offset);
       lastSyncTimeRef.current = now;
       setIsPlaying(true);
+      if (name === 'A') useDJStore.getState().setIsPlayingA(true);
+      else useDJStore.getState().setIsPlayingB(true);
     }
-  }, [isPlaying, isBufferLoaded]);
+  }, [isPlaying, isBufferLoaded, name]);
 
   const handleCue = useCallback(() => {
     if (!playerRef.current || !isBufferLoaded) return;
@@ -182,14 +186,13 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
     // PAUSE RADIO WHEN MIXER STARTS
     useRadioStore.getState().pause();
 
-    internalRestartCountRef.current++;
-    playerRef.current.stop(now);
-    accumulatedPositionRef.current = beatOffsetRef.current;
     playerRef.current.start(now, beatOffsetRef.current);
     lastSyncTimeRef.current = now;
     setIsPlaying(true);
+    if (name === 'A') useDJStore.getState().setIsPlayingA(true);
+    else useDJStore.getState().setIsPlayingB(true);
     setCueCount((c: number) => c + 1);
-  }, [isBufferLoaded]);
+  }, [isBufferLoaded, name]);
 
   const stopCue = useCallback(() => {
     if (!playerRef.current || !isBufferLoaded) return;
@@ -198,7 +201,9 @@ export const useDJAudio = (url: string, trackId: string | null = null): DJAudioC
     playerRef.current.stop(now);
     accumulatedPositionRef.current = beatOffsetRef.current;
     setIsPlaying(false);
-  }, [isBufferLoaded]);
+    if (name === 'A') useDJStore.getState().setIsPlayingA(false);
+    else useDJStore.getState().setIsPlayingB(false);
+  }, [isBufferLoaded, name]);
 
   const applyVolume = useCallback((val: number) => {
     if (channelRef.current) channelRef.current.volume.value = Tone.gainToDb(val / 100);

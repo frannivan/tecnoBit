@@ -24,12 +24,32 @@ function App() {
     // Silencio inicial por defecto para evitar doble sonido al arrancar
     pause();
   }, [initOfflineSets, pause]);
+
+  const isPlayingA = useDJStore(state => state.isPlayingA);
+  const isPlayingB = useDJStore(state => state.isPlayingB);
+  
+  useEffect(() => {
+    if (isPlayingA || isPlayingB) {
+        pause();
+    }
+  }, [isPlayingA, isPlayingB, pause]);
   
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    // UNLOCK AUDIO HARDWARE
+    // HARD UNLOCK FOR MOBILE (BROWSERS PREFER HTML5 AUDIO AS KICKER)
+    try {
+        const audioKick = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/');
+        audioKick.volume = 0.01;
+        await audioKick.play();
+        setTimeout(() => audioKick.pause(), 100);
+    } catch (e) {
+        console.warn("Audio hardware kick failed:", e);
+    }
+
+    // UNLOCK TONE.JS
     await Tone.start();
+    await Tone.context.resume();
     console.log("Audio Context Started:", Tone.context.state);
     
     setHasInteracted(true);
