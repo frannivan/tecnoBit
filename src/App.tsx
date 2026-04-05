@@ -30,17 +30,36 @@ function App() {
   const handleStart = async () => {
     // UNLOCK AUDIO HARDWARE & WEB AUDIO API
     try {
-        await Tone.start();
+        console.log("Master Unlock Sequence Initiated...");
         await Tone.context.resume();
+        await Tone.start();
         
-        // PRIMING: Silent dummy sound to bypass mobile autoplay policies for both WebAudio and HTML5 Audio
-        const dummy = document.createElement('audio');
-        dummy.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAA+P/9P8DAA=="; 
-        await dummy.play();
-        dummy.pause();
-        dummy.remove();
+        // PRIMING 1: HTML5 Audio Elements (The Radio System)
+        const audio1 = document.getElementById('global-audio-player-1') as HTMLAudioElement;
+        const audio2 = document.getElementById('global-audio-player-2') as HTMLAudioElement;
         
-        console.log("Audio Engine Successfully Authorized:", Tone.context.state);
+        const unlockAudio = async (el: HTMLAudioElement | null) => {
+            if (!el) return;
+            el.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAA+P/9P8DAA==";
+            try {
+                await el.play();
+                el.pause();
+                console.log(`Unlocked Audio Element: ${el.id}`);
+            } catch(e) {}
+        };
+
+        await Promise.all([unlockAudio(audio1), unlockAudio(audio2)]);
+
+        // PRIMING 2: Tone.js (Web Audio API)
+        const osc = new Tone.Oscillator().toDestination();
+        osc.start();
+        osc.stop("+0.01");
+
+        // Ensure Master isn't muted
+        Tone.getDestination().mute = false;
+        Tone.getDestination().volume.value = 0;
+        
+        console.log("Audio Engine Successfully Authorized. Context State:", Tone.context.state);
     } catch (e) {
         console.warn("Audio Context unlock failed:", e);
     }
