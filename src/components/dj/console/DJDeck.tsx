@@ -191,21 +191,8 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
                   <div className="flex items-center gap-1 text-white/60"><span className="text-white/40 uppercase">Rem</span> <span ref={remainRef} className="text-emerald-400 w-10 text-right">0:00.0</span></div>
                </div>
             </div>
-            {/* SCROLLING WAVEFORM (ONDA GRANDE) */}
-            <div className="h-[60px] rounded bg-black/80 overflow-hidden relative border border-white/10 shadow-2xl">
-               {!audioController.isBufferLoaded ? (
-                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-20">
-                      <span className="text-[9px] text-white/30 font-black tracking-[0.4em] uppercase animate-pulse">Scanning track...</span>
-                   </div>
-               ) : (
-                   <DJWaveform url={url} trackId={track?.id} color={themeColor} resetTrigger={cueCount} getTimeInfo={getTimeInfo} />
-               )}
-               {/* Center Marker Line */}
-               <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white shadow-[0_0_10px_#fff] z-30"></div>
-            </div>
-
             {/* OVERVIEW WAVEFORM (ONDA PEQUEÑA) */}
-            <div className="h-[25px] rounded bg-black/60 overflow-hidden relative border border-white/5 flex items-center justify-center">
+            <div className="h-[35px] rounded bg-black/60 overflow-hidden relative border border-white/5 flex items-center justify-center">
                {!audioController.isBufferLoaded ? (
                    <span className="text-[7px] text-white/30 font-black tracking-[0.3em] uppercase animate-pulse">Analizando...</span>
                ) : (

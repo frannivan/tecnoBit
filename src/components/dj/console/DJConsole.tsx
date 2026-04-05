@@ -187,12 +187,12 @@ const DJConsoleComponent: React.FC = () => {
       {/* MASTER WAVEFORM AREA - Compact in Landscape */}
       <div className="w-full max-w-[1400px] bg-[#0c0c0c] border border-white/5 p-1 px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent landscape:max-w-none">
           <div className="relative h-[80px] landscape:h-[40px] overflow-hidden group">
-             <DJWaveform url={urlA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
+             <DJWaveform url={urlA} trackId={trackIdA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
              <div className="absolute top-2 left-6 text-[10px] font-black italic text-emerald-500/90 uppercase tracking-[0.5em] z-40 landscape:top-1 landscape:left-2 landscape:text-[8px] transition-all">MASTER DECK A - {trackNameA}</div>
           </div>
           <div className="h-0.5 bg-white/5 w-full relative z-50"></div>
           <div className="relative h-[80px] landscape:h-[40px] overflow-hidden group">
-             <DJWaveform url={urlB} color="#f97316" resetTrigger={audioB.cueCount} getTimeInfo={audioB.getTimeInfo} />
+             <DJWaveform url={urlB} trackId={trackIdB} color="#f97316" resetTrigger={audioB.cueCount} getTimeInfo={audioB.getTimeInfo} />
              <div className="absolute bottom-2 left-6 text-[10px] font-black italic text-orange-500/90 uppercase tracking-[0.5em] z-40 landscape:bottom-1 landscape:left-2 landscape:text-[8px] transition-all">MASTER DECK B - {trackNameB}</div>
           </div>
           <div className="absolute inset-y-0 left-1/2 w-[2px] bg-yellow-400 pointer-events-none z-[100] shadow-[0_0_15px_#fbbf24]">
