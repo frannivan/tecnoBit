@@ -37,24 +37,28 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = () => {
-    // 1. HARD BRIDGE: Wake up hardware using NATIVE HTML5 audio (The path user says 'works')
-    try {
-        const nativeKick = document.createElement('audio');
-        nativeKick.src = 'data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/';
-        nativeKick.volume = 0.1;
-        nativeKick.play().then(() => {
-            setTimeout(() => {
-                nativeKick.pause();
-                nativeKick.remove();
-            }, 500);
-        }).catch(e => console.warn("Native kick blocked:", e));
-    } catch (e) {}
-
-    // 2. ACTIVATE Tone.js in the SAME user gesture stack
     Tone.start();
     Tone.context.resume();
 
-    console.log("Audio Initialized (Native Bridge):", Tone.context.state);
+    // ---------------------------------------------------------
+    // PROFOUND ARCHITECTURAL FIX FOR iOS/MOBILE AUDIO LOCK
+    // Web Audio API (Tone.js) respects the physical Mute switch
+    // and can lose context priority. Native HTML5 <audio> does not.
+    // By keeping a silent <audio> element looping forever, we force 
+    // the system's AVAudioSession into 'Playback' mode, allowing 
+    // Tone.js to output freely regardless of the ringer switch.
+    // ---------------------------------------------------------
+    let silentKeeper = document.getElementById('ios-audio-keeper') as HTMLAudioElement;
+    if (!silentKeeper) {
+        silentKeeper = document.createElement('audio');
+        silentKeeper.id = 'ios-audio-keeper';
+        silentKeeper.loop = true;
+        silentKeeper.src = 'data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/';
+        document.body.appendChild(silentKeeper);
+    }
+    silentKeeper.play().catch(e => console.warn("PWA Keeper failed:", e));
+
+    console.log("Audio Initialized (Pro Keeper):", Tone.context.state);
     
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
