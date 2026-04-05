@@ -76,8 +76,8 @@ function App() {
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
         </AnimatePresence>
 
-        {/* Sección 1: Radio - Restaurada y FUNCIONAL */}
-        <section className="mt-8 transition-all duration-500">
+        {/* Sección 1: Radio - Ocultar en landscape móvil para foco en DJ */}
+        <section className="mt-8 transition-all duration-500 landscape:hidden lg:landscape:block">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
                <RadioUnit />
                <div className="mt-12">
@@ -86,10 +86,10 @@ function App() {
             </div>
         </section>
         
-        {/* Sección 2: DJ Console Prototype */}
-        <section className="flex flex-col items-center">
+        {/* Sección 2: DJ Console Prototype - Centrada y expandida en Landscape */}
+        <section className="flex flex-col items-center landscape:w-screen landscape:px-2">
              <DJConsole />
-         </section>
+        </section>
 
         <button 
             onClick={() => setShowHelp(true)}

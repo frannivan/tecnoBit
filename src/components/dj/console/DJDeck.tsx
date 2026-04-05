@@ -142,7 +142,7 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
   }, [getTimeInfo]);
 
   return (
-    <div className={`bg-zinc-950 border-4 border-zinc-900 p-3 md:p-4 rounded-3xl w-full max-w-[480px] flex flex-col md:flex-row gap-3 md:gap-4 shadow-2xl relative select-none ${name === 'B' ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
+    <div className={`bg-zinc-950 border-4 border-zinc-900 p-3 md:p-4 rounded-3xl w-full max-w-[480px] flex flex-col md:flex-row gap-3 md:gap-4 shadow-2xl relative select-none ${name === 'B' ? 'md:flex-row-reverse' : 'md:flex-row'} landscape:scale-[0.85] landscape:origin-center landscape:-my-4 translate-z-0`}>
       
       {/* PITCH COLUMN - Responsive Order 2 */}
       <div className="flex flex-row md:flex-col items-center justify-center gap-4 md:gap-2 order-2 md:order-1">

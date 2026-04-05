@@ -184,16 +184,16 @@ const DJConsoleComponent: React.FC = () => {
   return (
     <div className="flex flex-col items-center gap-4 py-2 w-full bg-[#030303] min-h-screen text-white/90 font-sans selection:bg-sky-500/30 overflow-hidden">
       
-      {/* MASTER WAVEFORM AREA */}
-      <div className="w-full max-w-[1400px] bg-[#0c0c0c] border border-white/5 p-1 px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
-          <div className="relative h-[80px] overflow-hidden group">
+      {/* MASTER WAVEFORM AREA - Compact in Landscape */}
+      <div className="w-full max-w-[1400px] bg-[#0c0c0c] border border-white/5 p-1 px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent landscape:max-w-none">
+          <div className="relative h-[80px] landscape:h-[40px] overflow-hidden group">
              <DJWaveform url={urlA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
-             <div className="absolute top-2 left-6 text-[10px] font-black italic text-emerald-500/90 uppercase tracking-[0.5em] z-40">MASTER DECK A - {trackNameA}</div>
+             <div className="absolute top-2 left-6 text-[10px] font-black italic text-emerald-500/90 uppercase tracking-[0.5em] z-40 landscape:top-1 landscape:left-2 landscape:text-[8px] transition-all">MASTER DECK A - {trackNameA}</div>
           </div>
           <div className="h-0.5 bg-white/5 w-full relative z-50"></div>
-          <div className="relative h-[80px] overflow-hidden group">
+          <div className="relative h-[80px] landscape:h-[40px] overflow-hidden group">
              <DJWaveform url={urlB} color="#f97316" resetTrigger={audioB.cueCount} getTimeInfo={audioB.getTimeInfo} />
-             <div className="absolute bottom-2 left-6 text-[10px] font-black italic text-orange-500/90 uppercase tracking-[0.5em] z-40">MASTER DECK B - {trackNameB}</div>
+             <div className="absolute bottom-2 left-6 text-[10px] font-black italic text-orange-500/90 uppercase tracking-[0.5em] z-40 landscape:bottom-1 landscape:left-2 landscape:text-[8px] transition-all">MASTER DECK B - {trackNameB}</div>
           </div>
           <div className="absolute inset-y-0 left-1/2 w-[2px] bg-yellow-400 pointer-events-none z-[100] shadow-[0_0_15px_#fbbf24]">
               <div className="absolute top-0 -left-1.5 w-4 h-4 bg-yellow-400 rotate-45" />
@@ -201,7 +201,7 @@ const DJConsoleComponent: React.FC = () => {
           </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:flex-nowrap gap-4 xl:gap-8 justify-center items-center lg:items-end w-full relative z-10 px-4 mt-2">
+      <div className="flex flex-col landscape:flex-row lg:flex-row lg:flex-nowrap gap-4 xl:gap-8 justify-center items-center lg:items-end w-full relative z-10 px-4 mt-2">
         <DJDeck 
             name="A" 
             crossfadeValue={crossfade} 
