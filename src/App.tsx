@@ -35,6 +35,18 @@ function App() {
         await Tone.start();
         await Tone.context.resume();
         
+        // NATIVE BEEP TEST (Bypass Tone context temporarily)
+        try {
+            const actx = Tone.context.rawContext as AudioContext;
+            const osc = actx.createOscillator();
+            const gain = actx.createGain();
+            osc.connect(gain);
+            gain.connect(actx.destination);
+            gain.gain.setValueAtTime(0.01, actx.currentTime);
+            osc.start();
+            osc.stop(actx.currentTime + 0.1);
+        } catch(e) { console.warn("Native beep failed", e); }
+
         // PRIMING 1: HTML5 Audio Elements (The Radio System)
         const audio1 = document.getElementById('global-audio-player-1') as HTMLAudioElement;
         const audio2 = document.getElementById('global-audio-player-2') as HTMLAudioElement;
@@ -55,9 +67,9 @@ function App() {
         }
 
         // PRIMING 2: Tone.js (Web Audio API)
-        const osc = new Tone.Oscillator().toDestination();
-        osc.start();
-        osc.stop("+0.02");
+        const oscT = new Tone.Oscillator().toDestination();
+        oscT.start();
+        oscT.stop("+0.05");
 
         // Ensure Master isn't muted
         Tone.getDestination().mute = false;

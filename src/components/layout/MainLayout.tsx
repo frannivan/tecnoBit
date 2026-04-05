@@ -57,11 +57,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         <div className="h-0.5 w-full bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </div>
                 </div>
--                <div className="text-xs font-mono text-zinc-500">v1.2.5 (AUDIO_RESILIENCE) // ANALOG_DIGITAL_HYBRID</div>
-+                <div className="text-xs font-mono text-zinc-500 flex items-center gap-2">
-+                   <span>v1.2.6 (PRO_DIAGNOSTIC)</span>
-+                   <AudioStatusIndicator />
-+                </div>
+                <div className="text-xs font-mono text-zinc-500 flex items-center gap-2">
+                   <span>v1.2.7 (MASTER_MIXER_SYNC)</span>
+                   <AudioStatusIndicator />
+                </div>
             </header>
             
             <main className="flex-1 p-4 md:p-8 flex flex-col gap-8">
