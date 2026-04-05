@@ -178,7 +178,15 @@ export const DJDeck: React.FC<Props> = ({ name, crossfadeValue, audioController,
             <div className="flex justify-between items-start gap-2">
                <div className="flex-1 overflow-hidden">
                   <div className="flex items-center gap-1.5"><Music size={10} className="text-sky-400" /><span className="text-[10px] font-black text-white/90 truncate uppercase tracking-wider">{trackName}</span></div>
-                  <div className="text-[8px] font-bold text-white/40 truncate ml-4 uppercase">{isLoaded ? 'READY TO PLAY' : 'DECODING...'}</div>
+                  <div className="text-[8px] font-bold truncate ml-4 uppercase">
+                      {!url ? (
+                          <span className="text-white/20">NO TRACK LOADED</span>
+                      ) : isLoaded ? (
+                          <span className="text-emerald-400/80">READY TO PLAY</span>
+                      ) : (
+                          <span className="text-orange-500 animate-pulse">DECODING BUFFER...</span>
+                      )}
+                  </div>
                </div>
                <div className="flex flex-col items-center justify-center w-12 h-12">
                   <div className="text-2xl font-black italic text-emerald-400 leading-none tracking-tighter">{(bpm * pitch).toFixed(2)}</div>
