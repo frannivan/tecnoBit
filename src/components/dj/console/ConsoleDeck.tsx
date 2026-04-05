@@ -50,7 +50,7 @@ export const ProfessionalFader: React.FC<{
 };
 
 export const DJDeck: React.FC<Props> = ({ name, audioUrl, crossfadeValue }) => {
-  const { isPlaying, togglePlay, applyVolume, applyEQ, applyPitch, getLevel, getTimeInfo } = useDJAudio(audioUrl);
+  const { isPlaying, togglePlay, applyVolume, applyEQ, applyPitch, getLevel, getTimeInfo } = useDJAudio(audioUrl, null, 'A');
   const [localVolume, setLocalVolume] = useState(100);
   const [eq, setEQ] = useState({ low: 0, mid: 0, high: 0 });
   const [pitch, setPitch] = useState(1.0);
