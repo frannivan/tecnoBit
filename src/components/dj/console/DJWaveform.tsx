@@ -164,7 +164,8 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
                 if (needleRef.current) needleRef.current.style.left = `${prog}%`;
             } else {
                 if (moverRef.current) {
-                    moverRef.current.style.transform = `translateX(calc(50% - ${prog}%))`;
+                    // Precision scroll: Waveform moves, needle at center (left-1/2)
+                    moverRef.current.style.transform = `translateX(-${current * 350}px)`;
                 }
             }
         }
@@ -175,11 +176,11 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
   }, [isReady, isOverview, getTimeInfo]);
 
   return (
-    <div className="w-full h-full relative flex items-center overflow-hidden bg-black">
+    <div className="w-full h-full relative flex items-center overflow-hidden bg-black/40">
       <div 
         ref={moverRef}
-        className={`h-full ${isOverview ? 'w-full shadow-inner' : 'absolute left-0 flex items-center'}`}
-        style={{ width: isOverview ? '100%' : '50000px', transform: 'translateX(50%)' }}
+        className={`h-full ${isOverview ? 'w-full shadow-inner' : 'absolute left-1/2 flex items-center'}`}
+        style={{ width: isOverview ? '100%' : '100px', transform: 'translateX(0%)', willChange: 'transform' }}
       >
           <div ref={containerRef} className="w-full h-full" />
       </div>
@@ -187,22 +188,22 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
       {isOverview && isReady && (
           <div 
             ref={needleRef}
-            className="absolute top-0 bottom-0 w-[1px] bg-white shadow-[0_0_6px_#fff] z-50"
+            className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_#fff] z-50 transition-all duration-100"
             style={{ left: '0%' }}
           />
       )}
 
       {!isOverview && (
         <div className="absolute left-1/2 top-0 bottom-0 flex flex-col items-center z-[100] pointer-events-none">
-            <div className="w-[1.5px] h-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.8)]" />
-            <div className="absolute -top-2 w-5 h-5 bg-white rotate-45 shadow-[0_0_10px_#fff]" />
-            <div className="absolute -bottom-2 w-5 h-5 bg-white rotate-45 shadow-[0_0_10px_#fff]" />
+            <div className="w-[1.5px] h-full bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]" />
+            <div className="absolute -top-1 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-yellow-400" />
+            <div className="absolute -bottom-1 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-yellow-400" />
         </div>
       )}
 
       {!isReady && (
          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-30">
-            <div className="text-[10px] font-black italic animate-pulse text-white/30 uppercase tracking-[0.5em] font-mono">Decoding...</div>
+            <div className="text-[10px] font-black italic animate-pulse text-white/30 uppercase tracking-[0.5em] font-mono">Syncing Monitor...</div>
          </div>
       )}
     </div>
