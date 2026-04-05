@@ -36,15 +36,37 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = async () => {
+  const handleStart = () => {
     try {
-        await Tone.start();
-        await Tone.context.resume();
+        // MUST BE SYNCHRONOUS. Not awaited.
+        Tone.start();
+        Tone.context.resume();
 
         // ---------------------------------------------------------
-        // PROVEN iOS PRIMING SEQUENCE (From v1.2.9 stable)
-        // iOS Safari strictly requires an actual audio node to output
-        // sound during the touch event to unlock the hardware context.
+        // PRIMING 1: HTML5 Audio Elements (Hijack physical mute switch on iOS)
+        // We use the existing global audio elements that stay in the DOM.
+        // ---------------------------------------------------------
+        const unlockAudio = (elId: string) => {
+            let el = document.getElementById(elId) as HTMLAudioElement | null;
+            if (!el) {
+                el = document.createElement('audio');
+                el.id = elId;
+                el.style.display = 'none';
+                document.body.appendChild(el);
+            }
+            el.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+            el.play().then(() => {
+                setTimeout(() => {
+                    if (el) { el.pause(); el.src = ""; }
+                }, 50);
+            }).catch(() => {});
+        };
+
+        unlockAudio('global-audio-player-1');
+        unlockAudio('global-audio-player-2');
+
+        // ---------------------------------------------------------
+        // PRIMING 2: PROVEN iOS TONE.JS SEQUENCE (Sync execution)
         // ---------------------------------------------------------
         const osc = new Tone.Oscillator().toDestination();
         osc.start();
@@ -53,7 +75,7 @@ function App() {
         Tone.getDestination().mute = false;
         Tone.getDestination().volume.value = 0;
 
-        console.log("Audio Engine Successfully Authorized. Context State:", Tone.context.state);
+        console.log("Audio Engine Authorized. Context State:", Tone.context.state);
     } catch (e) {
         console.warn("Audio Context unlock failed:", e);
     }
