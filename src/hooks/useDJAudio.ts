@@ -119,7 +119,8 @@ export const useDJAudio = (url: string, trackId: string | null = null, name: 'A'
     const meter = new Tone.Meter();
     const channel = new Tone.Channel(0, 0);
 
-    player.chain(eq, channel, meter, Tone.getDestination());
+    player.chain(eq, channel, Tone.Destination);
+    channel.connect(meter);
 
     playerRef.current = player;
     eqRef.current = eq;
@@ -127,6 +128,12 @@ export const useDJAudio = (url: string, trackId: string | null = null, name: 'A'
     channelRef.current = channel;
 
     return () => {
+      // Disconnect before disposing
+      player.disconnect();
+      eq.disconnect();
+      channel.disconnect();
+      meter.disconnect();
+      
       player.dispose();
       eq.dispose();
       meter.dispose();
@@ -164,14 +171,17 @@ export const useDJAudio = (url: string, trackId: string | null = null, name: 'A'
       }
   }, [isPlaying]);
 
-  const togglePlay = useCallback(() => {
+  const togglePlay = useCallback(async () => {
     if (!playerRef.current || !isBufferLoaded) return;
-    const now = Tone.now();
 
-    // FORCE ON-DEMAND CONTEXT ACTIVATION
+    // SYNC RESUME (User Gesture)
     Tone.start();
     Tone.context.resume();
     
+    // AWAIT to be sure (optional but helpful)
+    await Tone.context.resume();
+    
+    const now = Tone.now();
     if (isPlaying) {
       accumulatedPositionRef.current += (now - lastSyncTimeRef.current) * currentPitchRef.current;
       internalRestartCountRef.current = 0; // Real intentional stop
@@ -182,23 +192,24 @@ export const useDJAudio = (url: string, trackId: string | null = null, name: 'A'
       useRadioStore.getState().pause();
 
       const offset = accumulatedPositionRef.current % (durationRef.current || 1);
-      playerRef.current.start(now, offset);
-      lastSyncTimeRef.current = now;
+      playerRef.current.start(Tone.now(), offset); // Use fresh now after await
+      lastSyncTimeRef.current = Tone.now();
       setIsPlaying(true);
     }
   }, [isPlaying, isBufferLoaded, setIsPlaying]);
 
-  const handleCue = useCallback(() => {
+  const handleCue = useCallback(async () => {
     if (!playerRef.current || !isBufferLoaded) return;
-    const now = Tone.now();
 
-    // FORCE ON-DEMAND CONTEXT ACTIVATION
+    // SYNC RESUME (User Gesture)
     Tone.start();
     Tone.context.resume();
+    await Tone.context.resume();
 
     // PAUSE RADIO WHEN MIXER STARTS
     useRadioStore.getState().pause();
 
+    const now = Tone.now();
     playerRef.current.start(now, beatOffsetRef.current);
     lastSyncTimeRef.current = now;
     setIsPlaying(true);

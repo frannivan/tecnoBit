@@ -11,6 +11,7 @@ import { useRadioStore } from './store/useRadioStore';
 import { useDJStore } from './store/useDJStore';
 import { HelpCircle } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 function App() {
   useAudioPlayer();
@@ -36,52 +37,82 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     try {
-        // MUST BE SYNCHRONOUS. Not awaited.
-        Tone.start();
-        Tone.context.resume();
+        // 1. Unblock Tone.js (Sync context resumption)
+        await Tone.start();
+        await Tone.context.resume();
 
-        // ---------------------------------------------------------
-        // PRIMING 1: HTML5 Audio Elements (Hijack physical mute switch on iOS)
-        // We use the existing global audio elements that stay in the DOM.
-        // ---------------------------------------------------------
-        const unlockAudio = (elId: string) => {
+        // 2. Setup Persistent HTML5 Audio Keeper (iOS focus)
+        const setupKeeper = (elId: string) => {
             let el = document.getElementById(elId) as HTMLAudioElement | null;
             if (!el) {
                 el = document.createElement('audio');
                 el.id = elId;
                 el.style.display = 'none';
+                el.loop = true;
                 document.body.appendChild(el);
             }
-            el.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-            el.play().then(() => {
-                setTimeout(() => {
-                    if (el) { el.pause(); el.src = ""; }
-                }, 50);
-            }).catch(() => {});
+            el.setAttribute('playsinline', 'true');
+            el.volume = 1;
+            // 1s silent mono 16bit 8khz wav (extremely small but valid)
+            el.src = "data:audio/wav;base64,UklGRjIAAABXQVZFRm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YRAAAAAAAAAAAAAAAAAAAAAAAAAA";
+            el.play().catch(e => {
+                console.warn("Keeper play blocked:", e);
+                // Fallback attempt
+                setTimeout(() => el && el.play().catch(() => {}), 1000);
+            });
         };
 
-        unlockAudio('global-audio-player-1');
-        unlockAudio('global-audio-player-2');
+        setupKeeper('mobile-audio-keeper');
 
-        // ---------------------------------------------------------
-        // PRIMING 2: PROVEN iOS TONE.JS SEQUENCE (Sync execution)
-        // ---------------------------------------------------------
-        const osc = new Tone.Oscillator().toDestination();
-        osc.start();
-        osc.stop("+0.05");
+        // 3. Web Audio Priming
+        const osc = new Tone.Oscillator(440, "sine").toDestination();
+        osc.volume.value = -Infinity;
+        osc.start(); // LEAVE IT RUNNING BUT SILENT
 
-        Tone.getDestination().mute = false;
-        Tone.getDestination().volume.value = 0;
+        Tone.Destination.mute = false;
+        Tone.Destination.volume.value = 0;
 
-        console.log("Audio Engine Authorized. Context State:", Tone.context.state);
+        // 4. Persistence Watchdog (Aggressive for mobile)
+        setInterval(() => {
+            if (Tone.context.state !== 'running') {
+                Tone.context.resume();
+                console.log("Context Guard: Auto-resumed");
+            }
+        }, 2000);
+
+        console.log("Audio Engine Authorized. Watchdog active. State:", Tone.context.state);
+        setAudioStatus(Tone.context.state);
     } catch (e) {
         console.warn("Audio Context unlock failed:", e);
     }
 
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
+  };
+
+  const [audioStatus, setAudioStatus] = useState<string>(Tone.context.state);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+        setAudioStatus(Tone.context.state);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleRescue = async () => {
+      try {
+          await Tone.start();
+          await Tone.context.resume();
+          const osc = new Tone.Oscillator(440, "sine").toDestination();
+          osc.volume.value = -12;
+          osc.start().stop("+0.1");
+          toast.success("Audio Engine Resumed");
+          setAudioStatus(Tone.context.state);
+      } catch (e) {
+          toast.error("Rescue failed");
+      }
   };
 
   return (
@@ -91,6 +122,23 @@ function App() {
           {!hasInteracted && <StartScreen onStart={handleStart} />}
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
         </AnimatePresence>
+
+        {/* AUDIO MONITOR FOR MOBILE DEBUGGING */}
+        <div className="fixed top-4 right-4 z-[100] flex flex-col items-end gap-2 pointer-events-none sm:pointer-events-auto">
+            <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border backdrop-blur-md transition-all ${
+                audioStatus === 'running' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' : 'bg-red-500/20 border-red-500/50 text-red-400 animate-pulse'
+            }`}>
+                Engine: {audioStatus}
+            </div>
+            {audioStatus !== 'running' && hasInteracted && (
+                <button 
+                    onClick={handleRescue}
+                    className="px-3 py-1.5 bg-orange-500 text-black text-[10px] font-black rounded-lg shadow-xl hover:bg-orange-400 transition-all pointer-events-auto"
+                >
+                    FIX AUDIO
+                </button>
+            )}
+        </div>
 
         {/* Sección 1: Radio - Restaurada y FUNCIONAL */}
         <section className="mt-8 transition-all duration-500">

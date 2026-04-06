@@ -1,6 +1,8 @@
 import React from 'react';
 import { X, Radio, Disc, MoveHorizontal, MousePointerClick } from 'lucide-react';
 import { motion } from 'framer-motion';
+import * as Tone from 'tone';
+import toast from 'react-hot-toast';
 
 interface HelpGuideProps {
     onClose: () => void;
@@ -80,23 +82,35 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
 
                         <div className="pt-4 border-t border-zinc-700">
                              <button
-                                onClick={() => {
-                                    const ac = new (window.AudioContext || (window as any).webkitAudioContext)();
-                                    const osc = ac.createOscillator();
-                                    const gain = ac.createGain();
-                                    osc.connect(gain);
-                                    gain.connect(ac.destination);
-                                    osc.frequency.setValueAtTime(440, ac.currentTime);
-                                    gain.gain.setValueAtTime(0.1, ac.currentTime);
-                                    osc.start();
-                                    osc.stop(ac.currentTime + 0.5);
+                                onClick={async () => {
+                                    try {
+                                        // Use existing Tone.js context instead of creating new ones
+                                        await Tone.start();
+                                        if (Tone.context.state !== 'running') {
+                                            await Tone.context.resume();
+                                        }
+
+                                        const osc = new Tone.Oscillator(880, "sine").toDestination();
+                                        osc.volume.value = -6; // Audible volume
+                                        osc.start().stop("+0.5");
+                                        
+                                        toast.success(`Audio Status: ${Tone.context.state.toUpperCase()}`);
+                                        console.log("Tone.js Diagnostic Beep Triggered. State:", Tone.context.state);
+                                    } catch (e) {
+                                        console.error("Diagnostic failed:", e);
+                                        toast.error("Audio block identified.");
+                                    }
                                 }}
-                                className="w-full py-2 bg-red-900/30 border border-red-500/50 text-red-200 rounded hover:bg-red-900/50 transition-colors text-xs font-mono"
+                                className="w-full py-2 bg-orange-950/30 border border-orange-500/50 text-orange-200 rounded hover:bg-orange-900/50 transition-colors text-xs font-mono flex items-center justify-center gap-2"
                              >
-                                [DEBUG] PLAY TEST BEEP (440Hz)
+                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                                [DEBUG] FORCE AUDIO RESUME & BEEP
                              </button>
+                             <p className="text-[10px] text-zinc-500 mt-2">
+                                Current Context: <span className="text-orange-400 font-mono font-bold uppercase">{Tone.context.state}</span>
+                             </p>
                              <p className="text-[10px] text-zinc-500 mt-1">
-                                Click this. If you don't hear a beep, your system audio is muted or the tab is blocked.
+                                Click to force-resume the engine. If silent, check your hardware mute switch or volume.
                              </p>
                         </div>
                     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useRadioStore } from '../store/useRadioStore';
+import { useDJStore } from '../store/useDJStore';
 
 export const useAudioPlayer = () => {
   const currentStation = useRadioStore(state => state.currentStation);
@@ -7,6 +8,9 @@ export const useAudioPlayer = () => {
   const masterVolume = useRadioStore(state => state.volume);
   const isMuted = useRadioStore(state => state.isMuted);
   const activeDeck = useRadioStore(state => state.activeDeck);
+  
+  const isPlayingA = useDJStore(state => state.isPlayingA);
+  const isPlayingB = useDJStore(state => state.isPlayingB);
   
   const setStation = useRadioStore(state => state.setStation);
   const setLoading = useRadioStore(state => state.setLoading);
@@ -85,21 +89,31 @@ export const useAudioPlayer = () => {
             audio.src = currentStation.streamUrl;
             audio.load();
         }
+        audio.volume = masterVolume;
         audio.play().then(() => {
             setLoading(false);
         }).catch(() => {
             setLoading(false);
         });
+    } else if (isPlayingA || isPlayingB) {
+        // MIXER IS ACTIVE: Keep the audio session alive with a SILENT LOOP
+        // DO NOT PAUSE! Use the radio player as a "carrier" for the session.
+        if (audio.src !== "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/") {
+            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+            audio.load();
+        }
+        audio.volume = 0; // Completely silent
+        audio.loop = true;
+        audio.play().catch(() => {});
+        setLoading(false);
     } else {
         setLoading(false);
         audio.pause();
-        audio.src = ""; // DESTREUIMOS EL AUDIO PARA EVITAR ECOS
+        audio.volume = 0;
     }
 
-    // RESTORE VOLUME (FIXED RADIO SILENCE)
-    audio.volume = masterVolume; 
     audio.muted = isMuted;
-  }, [currentStation, isPlaying, activeDeck, masterVolume, isMuted]);
+  }, [currentStation, isPlaying, isPlayingA, isPlayingB, activeDeck, masterVolume, isMuted]);
 
   return null;
 };
