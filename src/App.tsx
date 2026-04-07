@@ -36,26 +36,36 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = () => {
+    // 1. INSTANT UI PROGRESS
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
 
-    let keeper = document.getElementById('global-keeper') as HTMLAudioElement;
-    if (!keeper) {
-        keeper = document.createElement('audio');
+    // 2. ONE-TIME GLOBAL UNLOCK (THE RADIO STRATEGY)
+    if (!document.getElementById('global-keeper')) {
+        const keeper = document.createElement('audio');
         keeper.id = 'global-keeper';
         keeper.autoplay = true;
         keeper.setAttribute('playsinline', 'true');
-        keeper.loop = true;
-        keeper.volume = 0.01;
+        keeper.loop = false; 
+        keeper.volume = 0.01; 
         document.body.appendChild(keeper);
+        
+        keeper.src = "/Audios/Vociferous (Club Mix).mp3"; 
+        keeper.play()
+            .then(() => {
+                console.log("Global Session: ACTIVE (KEEPER)");
+                // Silence and remove it quickly
+                setTimeout(() => {
+                    keeper.pause();
+                    if (document.body.contains(keeper)) {
+                        document.body.removeChild(keeper);
+                    }
+                }, 150);
+            })
+            .catch((err) => console.warn("Global Session: BLOCKED", err.name, err.message));
     }
-    
-    keeper.src = "/Audios/Vociferous (Club Mix).mp3"; 
-    keeper.play()
-        .then(() => console.log("Global Session: ACTIVE (KEEPER)"))
-        .catch((err) => console.warn("Global Session: BLOCKED", err.name, err.message));
 
-    // 3. TONE START (Fire and forget)
+    // 3. TONE START
     Tone.start().then(() => {
         Tone.context.resume();
         Tone.Destination.mute = false;
@@ -76,7 +86,7 @@ function App() {
         <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
                <RadioUnit />
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.63 (STABILITY_FIX) // UNIFIED_KEEPER</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.64 (STABILITY_FIX) // UNIFIED_KEEPER_V3</div>
                
                {/* MASTER CRATE (Radio Mode) */}
                <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
@@ -90,7 +100,6 @@ function App() {
             </div>
         </section>
         
-        {/* Audio unlockers are now managed dynamically to avoid DOM nesting issues */}
         <section className="flex flex-col items-center">
              <DJConsole />
         </section>
