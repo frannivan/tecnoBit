@@ -85,35 +85,48 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                                 onClick={async () => {
                                     let step = "init";
                                     try {
+                                        console.log("--- START AUDIO DIAGNOSTIC ---");
+                                        console.log("Current state:", Tone.context.state);
+                                        
                                         // 1. HARDWARE UNLOCKER (HTML5 Audio)
                                         step = "html5-play";
+                                        console.log("Step: 1. Playing HTML5 silent pulse...");
                                         const SILENCE = "data:audio/wav;base64,UklGRjIAAABXQVZFRm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YRAAAAAAAAAAAAAA";
                                         const unblocker = new Audio(SILENCE);
                                         unblocker.volume = 0.001; 
                                         await unblocker.play();
+                                        console.log("HTML5 pulse OK.");
 
                                         // 2. TONE.JS UNLOCK
                                         step = "tone-start";
+                                        console.log("Step: 2. Starting Tone.js...");
                                         await Tone.start();
+                                        console.log("Tone.start() OK.");
                                         
                                         step = "tone-unmute";
+                                        console.log("Step: 3. Unmuting Destination...");
                                         Tone.Destination.mute = false;
                                         Tone.Destination.volume.value = 0;
                                         
                                         step = "tone-resume";
+                                        console.log("Step: 4. Resuming Context...");
                                         if (Tone.context.state !== 'running') {
                                             await Tone.context.resume();
                                         }
+                                        console.log("Context state now:", Tone.context.state);
 
                                         // 3. ACTUAL BEEP
                                         step = "beep-play";
+                                        console.log("Step: 5. Triggering Oscillator...");
                                         const osc = new Tone.Oscillator(880, "sine").toDestination();
                                         osc.volume.value = -6; // Audible volume
                                         osc.start().stop("+0.5");
+                                        console.log("Oscillator triggered.");
                                         
                                         toast.success(`Audio Status: ON (${Tone.context.state.toUpperCase()})`);
+                                        console.log("--- DIAGNOSTIC COMPLETE (SUCCESS) ---");
                                     } catch (e: any) {
-                                        console.error(`Diagnostic failed at step ${step}:`, e);
+                                        console.error(`DIAGNOSTIC FAILED at step [${step}]:`, e);
                                         const msg = e.message || "Unknown Error";
                                         toast.error(`Error at ${step}: ${msg}`);
                                     }

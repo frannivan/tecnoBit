@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useWakeLock } from '../../hooks/useWakeLock';
+import { DebugConsole } from '../common/DebugConsole';
 import { Toaster } from 'react-hot-toast';
 
 interface Props {
@@ -34,6 +35,7 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                 <Toaster position="bottom-right" toastOptions={{ style: { background: '#18181b', color: '#fff', border: '1px solid #27272a' } }} />
                 {children}
             </main>
+            <DebugConsole />
 
             <footer className="p-4 text-center text-xs text-zinc-600 font-mono border-t border-white/5">
                 ENGINEERED FOR AUDIO PURISTS
