@@ -58,35 +58,31 @@ const DJConsoleComponent: React.FC = () => {
   // ESTADO DE PITCH CENTRALIZADO PARA SYNC
   const [pitchA, setPitchA] = useState(1.0);
   const [pitchB, setPitchB] = useState(1.0);
-  const [isPoweredOn, setIsPoweredOn] = useState(true);
+  const [isPoweredOn, setIsPoweredOn] = useState(false);
 
   const handlePowerOn = async () => {
       if (isPoweredOn) {
+          // Apagar: silenciar el audio
           Tone.Destination.mute = true;
           setIsPoweredOn(false);
           return;
       }
-
-      await Tone.start();
-      await Tone.context.resume();
-      Tone.Destination.mute = false;
-      
-      // HARDWARE UNBLOCKER PULSE (Native Audio Trigger inside click handler)
+      // Encender: desbloquear audio de iOS y iniciar Tone.js
       const PULSE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
       const unblocker = new Audio(PULSE);
       unblocker.play().catch(() => {});
-      
-      // Digital Click Switch
+      await Tone.start();
+      await Tone.context.resume();
+      Tone.Destination.mute = false;
+      // Click de encendido
       const osc = new Tone.Oscillator(100, "sine").toDestination();
       osc.frequency.rampTo(40, 0.05);
       osc.volume.value = -6;
       osc.start().stop("+0.05");
-
       setIsPoweredOn(true);
   };
 
   const handleLoadA = useCallback(async (item: Track) => {
-      if (!isPoweredOn) await handlePowerOn();
       const cachedBlob = await getTrackBlob(item.id);
       const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
       if (loadUrl) {
@@ -96,10 +92,9 @@ const DJConsoleComponent: React.FC = () => {
           setFullTrackA(item);
           setPitchA(1.0);
       }
-  }, [isPoweredOn]);
+  }, []);
 
   const handleLoadB = useCallback(async (item: Track) => {
-      if (!isPoweredOn) await handlePowerOn();
       const cachedBlob = await getTrackBlob(item.id);
       const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
       if (loadUrl) {
@@ -109,7 +104,7 @@ const DJConsoleComponent: React.FC = () => {
           setFullTrackB(item);
           setPitchB(1.0);
       }
-  }, [isPoweredOn]);
+  }, []);
 
   // Listeners para carga explícita desde la librería
   useEffect(() => {
