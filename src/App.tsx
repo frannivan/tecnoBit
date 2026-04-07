@@ -70,7 +70,6 @@ function App() {
                     selectedTrackId={selectedTrack?.id || null}
                     onSelect={(track) => {
                         setSelectedTrack(track);
-                        window.dispatchEvent(new CustomEvent('radio-play-track', { detail: track }));
                     }}
                   />
                </div>

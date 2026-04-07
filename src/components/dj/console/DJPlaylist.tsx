@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Music, Plus, Clock, Database, Loader2 } from 'lucide-react';
+import { Music, Plus, Database, Loader2 } from 'lucide-react';
 import { useDJStore, type Track } from '../../../store/useDJStore';
 import { saveTrackBlob } from '../../../utils/indexedDB';
 
@@ -99,16 +99,15 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
         <table className="w-full text-left border-collapse">
           <thead className="sticky top-0 bg-zinc-950/90 backdrop-blur-md z-10">
             <tr className="border-b border-white/5">
-              <th className="px-8 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest w-12 text-center">Pos</th>
-              <th className="px-4 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Metadata</th>
-              <th className="px-4 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest text-center">BPM / Length</th>
-              <th className="px-8 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest text-right whitespace-nowrap">Status</th>
+              <th className="px-4 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest w-10 text-center">#</th>
+              <th className="px-4 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Canción</th>
+              <th className="px-4 py-3 text-[9px] font-black text-zinc-500 uppercase tracking-widest text-center hidden sm:table-cell">BPM</th>
             </tr>
           </thead>
           <tbody>
             {currentTracks.length === 0 ? (
                 <tr>
-                    <td colSpan={4} className="py-24 text-center">
+                    <td colSpan={3} className="py-24 text-center">
                         <div className="flex flex-col items-center gap-4 opacity-10">
                             <Database size={60} />
                             <p className="text-[12px] font-black uppercase tracking-[0.8em]">Library Syncing...</p>
@@ -123,60 +122,45 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                     <tr 
                       key={track.id} 
                       onClick={() => onSelect(track)}
-                      className={`border-b border-white/[0.02] transition-all cursor-pointer group ${isSelected ? 'bg-emerald-500/10 border-l-4 border-l-emerald-500' : 'hover:bg-white/[0.03]'}`}
+                      className={`border-b border-white/[0.02] transition-all cursor-pointer ${isSelected ? 'bg-emerald-500/10 border-l-4 border-l-emerald-500' : 'hover:bg-white/[0.03]'}`}
                     >
-                        <td className={`px-8 py-4 text-[10px] font-mono transition-colors text-center ${isSelected ? 'text-emerald-500 font-black' : 'text-zinc-700 font-bold group-hover:text-emerald-500'}`}>
-                           {(idx + 1).toString().padStart(2, '0') }
+                        <td className={`px-4 py-3 text-[10px] font-mono text-center ${isSelected ? 'text-emerald-500 font-black' : 'text-zinc-700 font-bold'}`}>
+                           {(idx + 1).toString().padStart(2, '0')}
                         </td>
-                        <td className="px-4 py-4">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-lg bg-zinc-900 flex items-center justify-center border transition-all ${isSelected ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'border-white/5 shadow-inner'}`}>
+                        <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center border shrink-0 transition-all ${isSelected ? 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'border-white/5'}`}>
                                     {track.artwork ? <img src={track.artwork} className="w-full h-full object-cover rounded-lg" alt="" /> : <Music size={14} className={isSelected ? 'text-emerald-500' : 'text-zinc-700'} />}
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className={`text-[11px] font-black transition-colors uppercase tracking-widest truncate max-w-[350px] ${isSelected ? 'text-emerald-400' : 'text-white/90 group-hover:text-white'}`}>{track.title}</span>
-                                    <span className={`text-[9px] font-bold uppercase tracking-tighter italic ${isSelected ? 'text-emerald-500/70' : 'text-zinc-500'}`}>{track.artist || 'Unknown Artist'}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                            <div className="flex flex-col items-center">
-                                {isAnalyzing ? (
-                                    <div className="flex flex-col items-center gap-0.5">
-                                        <Loader2 size={10} className="text-emerald-500 animate-spin" />
-                                        <span className="text-[7px] font-black text-emerald-500/50 uppercase">Analysis...</span>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <span className={`text-[11px] font-black uppercase tracking-widest truncate ${isSelected ? 'text-emerald-400' : 'text-white/90'}`}>{track.title}</span>
+                                    <span className={`text-[9px] font-bold uppercase italic ${isSelected ? 'text-emerald-500/70' : 'text-zinc-500'}`}>{track.artist || 'Unknown Artist'}</span>
+                                    {/* LOAD BUTTONS — always visible for mobile */}
+                                    <div className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                                        <button
+                                            onClick={() => window.dispatchEvent(new CustomEvent('dj-load-deck-a', { detail: track }))}
+                                            className="px-2.5 py-1 bg-emerald-500 text-black text-[8px] font-black rounded-md active:scale-95 transition-transform shadow-[0_0_10px_rgba(16,185,129,0.4)]"
+                                        >
+                                            LOAD A
+                                        </button>
+                                        <button
+                                            onClick={() => window.dispatchEvent(new CustomEvent('dj-load-deck-b', { detail: track }))}
+                                            className="px-2.5 py-1 bg-orange-500 text-black text-[8px] font-black rounded-md active:scale-95 transition-transform shadow-[0_0_10px_rgba(249,115,22,0.4)]"
+                                        >
+                                            LOAD B
+                                        </button>
                                     </div>
-                                ) : (
-                                    <>
-                                        <span className={`text-[11px] font-black font-mono ${isSelected ? 'text-emerald-400' : 'text-emerald-500/80'}`}>{track.bpm ? track.bpm.toFixed(2) : '---'}</span>
-                                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1"><Clock size={8}/> {Math.floor((track.duration || 0) / 60)}:{(Math.round((track.duration || 0) % 60)).toString().padStart(2, '0')}</span>
-                                    </>
-                                )}
-                            </div>
-                        </td>
-                        <td className="px-8 py-4 text-right">
-                            <div className="flex justify-end gap-2">
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.dispatchEvent(new CustomEvent('dj-load-deck-a', { detail: track }));
-                                        }}
-                                        className="px-3 py-1.5 bg-emerald-500 text-black text-[9px] font-black rounded-lg active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)]"
-                                    >
-                                        LOAD A
-                                    </button>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.dispatchEvent(new CustomEvent('dj-load-deck-b', { detail: track }));
-                                        }}
-                                        className="px-3 py-1.5 bg-orange-500 text-black text-[9px] font-black rounded-lg active:scale-95 transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)]"
-                                    >
-                                        LOAD B
-                                    </button>
                                 </div>
                             </div>
+                        </td>
+                        <td className="px-4 py-3 text-center hidden sm:table-cell">
+                            {isAnalyzing ? (
+                                <Loader2 size={10} className="text-emerald-500 animate-spin mx-auto" />
+                            ) : (
+                                <span className={`text-[11px] font-black font-mono ${isSelected ? 'text-emerald-400' : 'text-emerald-500/80'}`}>
+                                    {track.bpm ? track.bpm.toFixed(1) : '---'}
+                                </span>
+                            )}
                         </td>
                     </tr>
                 );
