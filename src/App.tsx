@@ -35,40 +35,33 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = async () => {
-    // 1. PURE USER GESTURE (THE RADIO STRATEGY)
-    // We create a temporary, body-appended audio element with a REAL file (Vociferous)
-    // We use a very low volume instead of 'muted' to ensure Safari 'blesses' the AudioContext
-    const unlocker = document.createElement('audio');
-    unlocker.autoplay = true;
-    unlocker.setAttribute('playsinline', 'true');
-    unlocker.volume = 0.01; 
-    unlocker.src = "/Audios/Vociferous (Club Mix).mp3"; 
-    
-    document.body.appendChild(unlocker);
-    unlocker.play()
-        .then(() => {
-            console.log("Global Hardware Unlock: SUCCESS (PHYSICAL_MP3)");
-            // Remove after a short delay so it doesn't play the whole song
-            setTimeout(() => {
-                unlocker.pause();
-                document.body.removeChild(unlocker);
-            }, 500);
-        })
-        .catch((err) => console.warn("Global Hardware Unlock: BLOCKED", err.name, err.message));
-
-    // 2. TONE START
-    try {
-        await Tone.start();
-        await Tone.context.resume();
-        console.log("Audio engine ready. State:", Tone.context.state);
-    } catch (e) {
-        console.warn("Tone.js Start failed:", e);
-    }
-
-    // 3. SET INTERACTION (UI PROGRESS)
+  const handleStart = () => {
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
+
+    let keeper = document.getElementById('global-keeper') as HTMLAudioElement;
+    if (!keeper) {
+        keeper = document.createElement('audio');
+        keeper.id = 'global-keeper';
+        keeper.autoplay = true;
+        keeper.setAttribute('playsinline', 'true');
+        keeper.loop = true;
+        keeper.volume = 0.01;
+        document.body.appendChild(keeper);
+    }
+    
+    keeper.src = "/Audios/Vociferous (Club Mix).mp3"; 
+    keeper.play()
+        .then(() => console.log("Global Session: ACTIVE (KEEPER)"))
+        .catch((err) => console.warn("Global Session: BLOCKED", err.name, err.message));
+
+    // 3. TONE START (Fire and forget)
+    Tone.start().then(() => {
+        Tone.context.resume();
+        Tone.Destination.mute = false;
+        Tone.Destination.volume.value = 0;
+        console.log("Audio Engine: RUNNING");
+    });
   };
 
   return (
@@ -83,7 +76,7 @@ function App() {
         <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
                <RadioUnit />
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.61 (STABILITY_FIX) // HARDWARE_SYNC_STRATEGY</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.63 (STABILITY_FIX) // UNIFIED_KEEPER</div>
                
                {/* MASTER CRATE (Radio Mode) */}
                <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
