@@ -27,7 +27,7 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                         <div className="h-0.5 w-full bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </div>
                 </div>
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.40 (MIXER_LOAD_SYNC) // DUAL_DECK_POWER</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.41 (POWER_FIX) // LOAD_ALWAYS_ON</div>
             </header>
             
             <main className="flex-1 p-4 md:p-8 flex flex-col gap-8">
