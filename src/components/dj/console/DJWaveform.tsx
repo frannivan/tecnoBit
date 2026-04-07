@@ -195,9 +195,9 @@ export const DJWaveform: React.FC<Props> = ({ url, trackId, audioData, color, is
 
       {!isOverview && (
         <div className="absolute left-1/2 top-0 bottom-0 flex flex-col items-center z-[100] pointer-events-none">
-            <div className="w-[1.5px] h-full bg-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.8)]" />
-            <div className="absolute -top-1 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-yellow-400" />
-            <div className="absolute -bottom-1 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-yellow-400" />
+            <div className="w-[1.5px] h-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.9)]" />
+            <div className="absolute -top-1 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-white" />
+            <div className="absolute -bottom-1 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-white" />
         </div>
       )}
 

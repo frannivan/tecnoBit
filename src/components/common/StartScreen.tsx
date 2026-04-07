@@ -29,7 +29,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ onStart }) => {
         >
              <span className="relative px-8 py-4 transition-all ease-in duration-75 bg-black rounded-md group-hover:bg-opacity-0 flex items-center gap-3">
                 <Power size={24} />
-                <span className="text-lg tracking-widest font-bold">INITIALIZE SYSTEM</span>
+                <span className="text-lg tracking-widest font-bold">ENTER MASTER CRATE</span>
              </span>
         </motion.button>
 

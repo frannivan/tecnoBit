@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useRadioStore } from '../store/useRadioStore';
-import { useDJStore } from '../store/useDJStore';
 
 export const useAudioPlayer = () => {
   const currentStation = useRadioStore(state => state.currentStation);
@@ -8,9 +7,6 @@ export const useAudioPlayer = () => {
   const masterVolume = useRadioStore(state => state.volume);
   const isMuted = useRadioStore(state => state.isMuted);
   const activeDeck = useRadioStore(state => state.activeDeck);
-  
-  const isPlayingA = useDJStore(state => state.isPlayingA);
-  const isPlayingB = useDJStore(state => state.isPlayingB);
   
   const setStation = useRadioStore(state => state.setStation);
   const setLoading = useRadioStore(state => state.setLoading);
@@ -78,12 +74,29 @@ export const useAudioPlayer = () => {
     };
   }, [setStation, pause]);
 
-  // Sync state between store and physical player - FORCE MUTE IF CONSOLE ACTIVE
+  // 2. Play tracks on Radio (Requested behavior)
+  useEffect(() => {
+    const handleRadioTrack = (e: any) => {
+        const track = e.detail;
+        if (track) {
+            setStation({
+                id: track.id,
+                name: track.title,
+                streamUrl: track.audioUrl,
+                genre: track.artist || 'Library',
+                country: 'Playlist'
+            });
+        }
+    };
+    window.addEventListener('radio-play-track', (handleRadioTrack as any));
+    return () => window.removeEventListener('radio-play-track', (handleRadioTrack as any));
+  }, [setStation]);
+
+  // Sync state between store and physical player 
   useEffect(() => {
     const audio = getAudio(activeDeck);
     if (!audio || !currentStation) return;
 
-    // SIEMPRE FUERA DE PLAY SI NO ESTAMOS EN MODO RADIO ACTIVO
     if (isPlaying) {
         if (audio.src !== currentStation.streamUrl) {
             audio.src = currentStation.streamUrl;
@@ -95,25 +108,20 @@ export const useAudioPlayer = () => {
         }).catch(() => {
             setLoading(false);
         });
-    } else if (isPlayingA || isPlayingB) {
-        // MIXER IS ACTIVE: Keep the audio session alive with a SILENT LOOP
-        // DO NOT PAUSE! Use the radio player as a "carrier" for the session.
-        if (audio.src !== "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/") {
-            audio.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-            audio.load();
-        }
-        audio.volume = 0; // Completely silent
-        audio.loop = true;
-        audio.play().catch(() => {});
-        setLoading(false);
     } else {
         setLoading(false);
-        audio.pause();
-        audio.volume = 0;
+        // SECURE SILENT PULSE (1-second 100% silent WAV)
+        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+        if (audio.src !== SILENCE) {
+            audio.src = SILENCE;
+            audio.loop = true;
+        }
+        audio.volume = 1.0; // High volume of pure silence data
+        audio.play().catch(() => {});
     }
 
     audio.muted = isMuted;
-  }, [currentStation, isPlaying, isPlayingA, isPlayingB, activeDeck, masterVolume, isMuted]);
+  }, [currentStation, isPlaying, activeDeck, masterVolume, isMuted]);
 
   return null;
 };

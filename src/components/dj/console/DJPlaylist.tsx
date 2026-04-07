@@ -1,18 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Music, Plus, Globe, Clock, Database, Loader2 } from 'lucide-react';
+import React, { useRef, useEffect } from 'react';
+import { Music, Plus, Clock, Database, Loader2 } from 'lucide-react';
 import { useDJStore, type Track } from '../../../store/useDJStore';
 
 interface Props {
   selectedTrackId: string | null;
   onSelect: (track: Track) => void;
-  analyzingTrackIds: Set<string>;
   deckAId?: string;
   deckBId?: string;
 }
 
-export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzingTrackIds, deckAId, deckBId }) => {
-  const { playlist, sharedCrate, history, addToPlaylist, fetchSharedCrate, isLoadingShared } = useDJStore();
-  const [activeTab, setActiveTab] = useState<'playlist' | 'shared'>('playlist');
+export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
+  const { playlist, sharedCrate, addToPlaylist, fetchSharedCrate, isLoadingShared, analyzingTrackIds } = useDJStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-fetch Shared Crate on mount
@@ -37,7 +35,7 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
     });
   };
 
-  const currentTracks = activeTab === 'playlist' ? playlist : sharedCrate;
+  const currentTracks = [...playlist, ...sharedCrate].sort((a,b) => b.timestamp - a.timestamp);
 
   return (
     <div className="w-full h-full flex flex-col font-sans">
@@ -48,26 +46,26 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
                     <Music size={16} className="text-emerald-500" />
                 </div>
-                <div>
-                    <h3 className="text-xs font-black text-white/90 uppercase tracking-[0.3em]">Master Crate</h3>
-                    <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{playlist.length + sharedCrate.length} Total Tracks</p>
+                <div className="flex items-center gap-4">
+                    <div>
+                        <h3 className="text-xs font-black text-white/90 uppercase tracking-[0.3em]">Master Crate</h3>
+                        <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{playlist.length + sharedCrate.length} Total Tracks</p>
+                    </div>
+                    {currentTracks.length > 0 && (
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                window.dispatchEvent(new CustomEvent('radio-play-track', { detail: currentTracks[0] }));
+                            }}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 text-black rounded-full shadow-[0_0_25px_rgba(16,185,129,0.5)] hover:scale-105 active:scale-95 transition-all outline-none border-none border-0"
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-widest text-black">PLAY CRATE ON RADIO</span>
+                            <span className="text-lg pb-0.5">▶</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Tab Selectors */}
-            <div className="flex gap-1 bg-black/40 p-1 rounded-full border border-white/5 ml-4">
-                <button 
-                  onClick={() => setActiveTab('playlist')}
-                  className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'playlist' ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'text-zinc-500 hover:text-white'}`}
-                >
-                </button>
-                <button 
-                  onClick={() => setActiveTab('shared')}
-                  className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === 'shared' ? 'bg-orange-500 text-black shadow-[0_0_15px_rgba(249,115,22,0.4)]' : 'text-zinc-500 hover:text-white'}`}
-                >
-                  <div className="flex items-center gap-2"><Globe size={12}/> Shared Crate</div>
-                </button>
-            </div>
         </div>
         
         <input 
@@ -110,10 +108,8 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
                 </tr>
             ) : (
               currentTracks.map((track, idx) => {
-                const isSelected = selectedTrackId === track.id;
                 const isAnalyzing = analyzingTrackIds.has(track.id);
-                const isLoaded = deckAId === track.id || deckBId === track.id;
-                const isPlayed = history.some(h => h.id === track.id);
+                const isSelected = selectedTrackId === track.id;
                 return (
                     <tr 
                       key={track.id} 
@@ -121,7 +117,7 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
                       className={`border-b border-white/[0.02] transition-all cursor-pointer group ${isSelected ? 'bg-emerald-500/10 border-l-4 border-l-emerald-500' : 'hover:bg-white/[0.03]'}`}
                     >
                         <td className={`px-8 py-4 text-[10px] font-mono transition-colors text-center ${isSelected ? 'text-emerald-500 font-black' : 'text-zinc-700 font-bold group-hover:text-emerald-500'}`}>
-                          {isSelected ? '▶' : (idx + 1).toString().padStart(2, '0')}
+                           {(idx + 1).toString().padStart(2, '0') }
                         </td>
                         <td className="px-4 py-4">
                             <div className="flex items-center gap-4">
@@ -150,17 +146,32 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
                             </div>
                         </td>
                         <td className="px-8 py-4 text-right">
-                            {isSelected ? (
-                              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] animate-pulse">Ready to Load</span>
-                            ) : isAnalyzing ? (
-                                <span className="text-[9px] font-black text-emerald-400/30 uppercase tracking-[0.2em]">Processing</span>
-                            ) : isPlayed ? (
-                                <span className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em] flex items-center justify-end gap-1"><div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></div> Played</span>
-                            ) : isLoaded ? (
-                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${deckAId === track.id ? 'text-emerald-500' : 'text-orange-500'}`}>On Air / Loaded</span>
-                            ) : (
-                                <span className="text-[9px] font-black text-zinc-800 uppercase tracking-[0.2em] group-hover:text-zinc-600 transition-colors">{track.bpm ? 'Analyzed' : 'Idle'}</span>
-                            )}
+                            <div className="flex justify-end gap-2">
+                                <div className="flex group-hover:hidden items-center gap-2">
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-700 italic">Ready</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/20"></div>
+                                </div>
+                                <div className="hidden group-hover:flex gap-2 transition-all duration-300 transform translate-x-0 opacity-100">
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.dispatchEvent(new CustomEvent('dj-load-deck-a', { detail: track }));
+                                        }}
+                                        className="px-3 py-1.5 bg-emerald-500 text-black text-[9px] font-black rounded-lg hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                                    >
+                                        LOAD A
+                                    </button>
+                                    <button 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.dispatchEvent(new CustomEvent('dj-load-deck-b', { detail: track }));
+                                        }}
+                                        className="px-3 py-1.5 bg-orange-500 text-black text-[9px] font-black rounded-lg hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)]"
+                                    >
+                                        LOAD B
+                                    </button>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 );
@@ -183,7 +194,7 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect, analyzi
                   <div className="w-10 h-1 bg-orange-500/20 rounded-full overflow-hidden"><div className="w-1/3 h-full bg-orange-500"></div></div>
               </div>
           </div>
-          <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">TecnoBit Advanced Media Engine v2.0</p>
+          <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">TecnoBit Advanced Media Engine v1.5.34</p>
       </div>
     </div>
   );

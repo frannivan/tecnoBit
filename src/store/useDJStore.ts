@@ -29,11 +29,14 @@ interface DJState {
   currentPlaylistIndex: number;
   activeTrackId: string | null;
   isLoadingShared: boolean;
+  analyzingTrackIds: Set<string>;
   audioData: Record<string, { rms: number[], duration: number }>;
   isPlayingA: boolean;
   isPlayingB: boolean;
+  selectedTrack: Track | null;
   
   // Actions
+  setSelectedTrack: (track: Track | null) => void;
   setIsPlayingA: (playing: boolean) => void;
   setIsPlayingB: (playing: boolean) => void;
   setAudioData: (trackId: string, data: { rms: number[], duration: number }) => void;
@@ -57,7 +60,10 @@ interface DJState {
   fetchSharedCrate: () => Promise<void>;
   uploadToSharedCrate: (file: File, metadata: Partial<Track>) => Promise<void>;
   uploadMultipleToSharedCrate: (items: { file: File, metadata: Partial<Track> }[], onProgress?: (current: number, total: number) => void) => Promise<void>;
+  // Metadata actions
   setTrackBPM: (trackId: string, bpm: number) => void;
+  addAnalyzingTrack: (id: string) => void;
+  removeAnalyzingTrack: (id: string) => void;
   // Legacy action for individual saving (used internally for auto-cache)
   saveTrackToLocal: (track: Track) => Promise<void>;
 }
@@ -71,10 +77,14 @@ export const useDJStore = create<DJState>()(
       currentPlaylistIndex: -1,
       activeTrackId: null,
       isLoadingShared: false,
+      analyzingTrackIds: new Set<string>(),
       history: [],
       audioData: {},
       isPlayingA: false,
       isPlayingB: false,
+      selectedTrack: null,
+
+      setSelectedTrack: (track) => set({ selectedTrack: track }),
 
       setAudioData: (trackId, data) => set(state => ({
         audioData: { ...state.audioData, [trackId]: data }
@@ -489,6 +499,16 @@ export const useDJStore = create<DJState>()(
               history: state.history.map(t => t.id === trackId ? { ...t, bpm } : t)
           }));
       },
+      addAnalyzingTrack: (id) => set(state => {
+          const next = new Set(state.analyzingTrackIds);
+          next.add(id);
+          return { analyzingTrackIds: next };
+      }),
+      removeAnalyzingTrack: (id) => set(state => {
+          const next = new Set(state.analyzingTrackIds);
+          next.delete(id);
+          return { analyzingTrackIds: next };
+      }),
       clearLocalCache: async () => {
         if (!confirm("This will permanently delete ALL local audio files and Saved Sets from this browser. Continue?")) return;
         try {

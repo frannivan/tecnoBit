@@ -13,7 +13,6 @@ export const useWaveform = (audioElement: HTMLAudioElement | null): UseWaveformR
   const [frequencies, setFrequencies] = useState(new Uint8Array(64));
   
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -21,13 +20,17 @@ export const useWaveform = (audioElement: HTMLAudioElement | null): UseWaveformR
 
     // Create Web Audio API context and connect to audio element
     const setupAudioContext = () => {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const source = audioContextRef.current.createMediaElementSource(audioElement);
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 128; // 64 frequency bins
-        source.connect(analyserRef.current);
-        analyserRef.current.connect(audioContextRef.current.destination);
+      if (!analyserRef.current) {
+        // Shared singleton to avoid context exhaustion on mobile
+        if (!(window as any)._sharedVisualizerContext) {
+            (window as any)._sharedVisualizerContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        const ctx = (window as any)._sharedVisualizerContext;
+        const source = ctx.createMediaElementSource(audioElement);
+        analyserRef.current = ctx.createAnalyser();
+        analyserRef.current!.fftSize = 128; // 64 frequency bins
+        source.connect(analyserRef.current!);
+        analyserRef.current!.connect(ctx.destination);
       }
     };
 
