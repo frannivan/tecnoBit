@@ -156,17 +156,13 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                         </td>
                         <td className="px-8 py-4 text-right">
                             <div className="flex justify-end gap-2">
-                                <div className="flex group-hover:hidden items-center gap-2">
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-zinc-700 italic">Ready</span>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/20"></div>
-                                </div>
-                                <div className="hidden group-hover:flex gap-2 transition-all duration-300 transform translate-x-0 opacity-100">
+                                <div className="flex gap-2">
                                     <button 
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             window.dispatchEvent(new CustomEvent('dj-load-deck-a', { detail: track }));
                                         }}
-                                        className="px-3 py-1.5 bg-emerald-500 text-black text-[9px] font-black rounded-lg hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                                        className="px-3 py-1.5 bg-emerald-500 text-black text-[9px] font-black rounded-lg active:scale-95 transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)]"
                                     >
                                         LOAD A
                                     </button>
@@ -175,7 +171,7 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                                             e.stopPropagation();
                                             window.dispatchEvent(new CustomEvent('dj-load-deck-b', { detail: track }));
                                         }}
-                                        className="px-3 py-1.5 bg-orange-500 text-black text-[9px] font-black rounded-lg hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)]"
+                                        className="px-3 py-1.5 bg-orange-500 text-black text-[9px] font-black rounded-lg active:scale-95 transition-all shadow-[0_0_15px_rgba(249,115,22,0.4)]"
                                     >
                                         LOAD B
                                     </button>
