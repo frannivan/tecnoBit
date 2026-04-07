@@ -40,16 +40,19 @@ function App() {
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
 
+    // 2. TRIGGER PERMANENT KEEPER
+    // We use a physical file with volume 0 to ensure iOS blessings without background noise.
     const keeper = document.getElementById('permanent-keeper') as HTMLAudioElement;
     if (keeper) {
         keeper.src = "/Audios/Vociferous (Club Mix).mp3"; 
         keeper.volume = 0; 
-        keeper.muted = false;
+        keeper.loop = true;
         keeper.play()
-            .then(() => console.log("Hardware Session: PERMANENTLY_ACTIVE (SILENT)"))
+            .then(() => console.log("Hardware Session: PERMANENTLY_ACTIVE (SILENT_MP3)"))
             .catch((err) => console.warn("Hardware Session: FAILED", err.name));
     }
 
+    // 3. TONE START
     Tone.start().then(() => {
         Tone.context.resume();
         Tone.Destination.mute = false;
@@ -60,25 +63,34 @@ function App() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col gap-24 relative px-4 sm:px-6 lg:px-8 pb-32 max-w-7xl mx-auto w-full">
+      <div className="flex flex-col gap-12 md:gap-24 relative px-4 sm:px-6 lg:px-8 pb-32 max-w-7xl mx-auto w-full">
         <AnimatePresence>
           {!hasInteracted && <StartScreen onStart={handleStart} />}
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
         </AnimatePresence>
 
-        <section className="mt-8 transition-all duration-500">
-            <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
-                <div className="flex justify-between items-center mb-4">
-                    <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.66 (PRO_STABILITY) // FIX_STATIONS_UI</div>
-                </div>
+        {/* VERSION TAG - TOP RIGHT OF FIRST SECTION */}
+        <div className="absolute top-2 right-6 md:right-12 z-10">
+            <div className="text-[10px] uppercase font-mono text-zinc-500 bg-black/40 px-3 py-1 rounded-full border border-white/5 backdrop-blur-md">
+                v1.5.67 (PRODUCTION_PRO) // STABLE_AUDIO_V4
+            </div>
+        </div>
+
+        {/* Sección 1: Radio & Library */}
+        <section className="mt-8">
+            <div className="bg-zinc-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl space-y-8">
                 
+                {/* Radio Unit */}
                 <RadioUnit />
                 
-                <div className="mt-8">
+                {/* Station Selection */}
+                <div className="relative pt-4">
+                    <h3 className="text-[10px] uppercase font-mono text-zinc-500 mb-4 px-2 tracking-widest hidden md:block">Available Transmissions</h3>
                     <StationList />
                 </div>
 
-               <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
+               {/* MASTER CRATE */}
+               <div className="mt-12 bg-zinc-950/20 rounded-[2rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
                   <DJPlaylist 
                     selectedTrackId={selectedTrack?.id || null}
                     onSelect={(track) => {
@@ -89,6 +101,7 @@ function App() {
             </div>
         </section>
         
+        {/* Sección 2: DJ Console */}
         <section className="flex flex-col items-center">
              <DJConsole />
         </section>
