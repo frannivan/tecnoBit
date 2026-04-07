@@ -83,53 +83,38 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                         <div className="pt-4 border-t border-zinc-700">
                              <button
                                  onClick={async () => {
-                                     const keeper = document.getElementById('permanent-keeper') as HTMLAudioElement;
-                                     
                                      try {
-                                         console.log("--- START AUDIO DIAGNOSTIC ---");
+                                         console.log("--- START AUDIO DIAGNOSTIC v1.5.69 ---");
                                          
-                                         // Step 1: KEEPER
-                                         console.log("Step: 1. Triggering Permanent Keeper...");
-                                         if (keeper) {
-                                             keeper.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-                                             await keeper.play();
-                                         }
-                                         console.log("Keeper: OK");
- 
-                                         // Step 2: TONE.JS
-                                         console.log("Step: 2. Initializing Web Audio...");
+                                         // Step 1: TONE.JS
+                                         console.log("Step: 1. Initializing Tone.js...");
                                          await Tone.start();
                                          await Tone.context.resume();
                                          Tone.Destination.mute = false;
                                          Tone.Destination.volume.value = 0;
-                                         console.log("Tone State:", Tone.context.state);
- 
-                                         // Step 3: OSCILLATOR
-                                         console.log("Step: 3. Triggering High-Gain Beep...");
-                                         const osc = new Tone.Oscillator(880, "sine").toDestination();
+                                         
+                                         const osc = new Tone.Oscillator(1000, "sine").toDestination();
                                          osc.volume.value = 0; 
-                                         osc.start().stop("+0.5");
-                                         console.log("Beep: SENT");
+                                         osc.start().stop("+1");
+                                         console.log("Tone.js: BEEP SENT (1000Hz)");
  
-                                         toast.success("DIAGNÓSTICO OK: Deberías escuchar un pitido fuerte");
+                                         toast.success("DIAGNÓSTICO ENVIADO: Si no oyes nada, revisa el interruptor físico de silencio de tu iPhone.");
                                          console.log("--- DIAGNOSTIC COMPLETE ---");
                                      } catch (e: any) {
-                                         const errName = e.name || "Error";
-                                         const errMsg = e.message || String(e);
-                                         console.error(`DIAGNOSTIC FAILED: ${errName} - ${errMsg}`, e);
-                                         toast.error(`ERROR: ${errName}`);
+                                         console.error(`DIAGNOSTIC FAILED:`, e);
+                                         toast.error(`ERROR: ${e.name || "Unknown"}`);
                                      }
                                  }}
                                 className="w-full py-2 bg-orange-950/30 border border-orange-500/50 text-orange-200 rounded hover:bg-orange-900/50 transition-colors text-xs font-mono flex items-center justify-center gap-2"
                              >
                                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                                [DEBUG] FORCE AUDIO RESUME & BEEP
+                                [DEBUG] FORCE AUDIO ENGINE RESUME
                              </button>
                              <p className="text-[10px] text-zinc-500 mt-2">
-                                Current Context: <span className="text-orange-400 font-mono font-bold uppercase">{Tone.context.state}</span>
+                                Current Context State: <span className="text-orange-400 font-mono font-bold uppercase">{Tone.context.state}</span>
                              </p>
                              <p className="text-[10px] text-zinc-500 mt-1">
-                                Click to force-resume the engine. If silent, check your hardware mute switch or volume.
+                                Si el Mixer no se escucha pero la Radio sí, clica arriba para forzar el reinicio del motor Web Audio.
                              </p>
                         </div>
                     </div>

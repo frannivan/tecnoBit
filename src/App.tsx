@@ -57,18 +57,20 @@ function App() {
 
         {/* Sección 1: Radio & Library */}
         <section className="mt-8">
-            <div className="bg-zinc-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl space-y-8">
+            <div className="bg-zinc-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl space-y-12">
                 
-                {/* Radio Unit */}
-                <RadioUnit />
-                
-                {/* Station Selection */}
-                <div className="relative pt-4">
-                    <StationList />
+                {/* 1. Radio Unit */}
+                <div className="space-y-6">
+                    <RadioUnit />
+                    <div className="relative pt-6 border-t border-white/5">
+                        <h3 className="text-[10px] uppercase font-mono text-zinc-400 mb-4 px-2 tracking-[0.3em] font-bold">Transmisiones Disponibles</h3>
+                        <StationList />
+                    </div>
                 </div>
 
-               {/* MASTER CRATE */}
+               {/* 2. MASTER CRATE */}
                <div className="mt-12 bg-zinc-950/20 rounded-[2rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
+                  <h3 className="text-[10px] uppercase font-mono text-zinc-500 p-6 pb-2 tracking-widest font-bold">Biblioteca Global / Master Crate</h3>
                   <DJPlaylist 
                     selectedTrackId={selectedTrack?.id || null}
                     onSelect={(track) => {
