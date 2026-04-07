@@ -4,6 +4,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { RadioUnit } from './components/radio/RadioUnit';
 import { DJConsole } from './components/dj/console/DJConsole';
 import { DJPlaylist } from './components/dj/console/DJPlaylist';
+import { StationList } from './components/radio/StationList';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { StartScreen } from './components/common/StartScreen';
 import { HelpGuide } from './components/common/HelpGuide';
@@ -36,21 +37,19 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = () => {
-    // 1. INSTANT UI PROGRESS
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
 
-    // 2. TRIGGER PERMANENT KEEPER
     const keeper = document.getElementById('permanent-keeper') as HTMLAudioElement;
     if (keeper) {
-        // Use the standard silent WAV to avoid background music issues
-        keeper.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+        keeper.src = "/Audios/Vociferous (Club Mix).mp3"; 
+        keeper.volume = 0; 
+        keeper.muted = false;
         keeper.play()
-            .then(() => console.log("Hardware Session: PERMANENTLY_ACTIVE"))
+            .then(() => console.log("Hardware Session: PERMANENTLY_ACTIVE (SILENT)"))
             .catch((err) => console.warn("Hardware Session: FAILED", err.name));
     }
 
-    // 3. TONE START
     Tone.start().then(() => {
         Tone.context.resume();
         Tone.Destination.mute = false;
@@ -67,13 +66,18 @@ function App() {
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
         </AnimatePresence>
 
-        {/* Sección 1: Radio - Con Libreria Integrada */}
         <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50 mb-4">v1.5.65 (PRO_STABILITY) // PERMANENT_KEEPER</div>
-               <RadioUnit />
-               
-               {/* MASTER CRATE (Radio Mode) */}
+                <div className="flex justify-between items-center mb-4">
+                    <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.66 (PRO_STABILITY) // FIX_STATIONS_UI</div>
+                </div>
+                
+                <RadioUnit />
+                
+                <div className="mt-8">
+                    <StationList />
+                </div>
+
                <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
                   <DJPlaylist 
                     selectedTrackId={selectedTrack?.id || null}
