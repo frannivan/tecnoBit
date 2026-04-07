@@ -13,9 +13,15 @@ export const DebugConsole: React.FC = () => {
         const originalWarn = console.warn;
 
         const addLog = (type: 'log' | 'error' | 'warn', args: any[]) => {
-            const msg = args.map(arg => 
-                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-            ).join(' ');
+            const msg = args.map(arg => {
+                if (arg instanceof Error) {
+                    return `${arg.name}: ${arg.message}`;
+                }
+                if (arg && typeof arg === 'object' && 'name' in arg && 'message' in arg) {
+                    return `${(arg as any).name}: ${(arg as any).message}`;
+                }
+                return typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg);
+            }).join(' ');
             
             setLogs(prev => [...prev.slice(-49), { 
                 type, 

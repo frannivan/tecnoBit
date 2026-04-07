@@ -84,58 +84,34 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                              <button
                                 onClick={async () => {
                                     const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
-                                    const SILENCE_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
                                     
-                                    let step = "init";
                                     try {
                                         console.log("--- START AUDIO DIAGNOSTIC ---");
-                                        console.log("Current state:", Tone.context.state);
                                         
-                                        // 1. HARDWARE UNLOCKER (HTML5 Audio)
-                                        step = "html5-play";
-                                        console.log("Step: 1. Playing HTML5 silent MP3 pulse...");
-                                        
-                                        if (unblocker) {
-                                            unblocker.src = SILENCE_MP3;
-                                            unblocker.volume = 0.001; 
-                                            await unblocker.play();
-                                            console.log("HTML5 pulse OK.");
-                                        } else {
-                                            console.warn("Global unlocker element not found!");
-                                        }
+                                        // Step 1: SYNC INTERACTION
+                                        console.log("Step: 1. Unlocking HTML5 Audio...");
+                                        const playPromise = unblocker?.play();
+                                        if (playPromise) await playPromise;
+                                        console.log("HTML5 Unlock: OK");
 
-                                        // 2. TONE.JS UNLOCK
-                                        step = "tone-start";
-                                        console.log("Step: 2. Starting Tone.js...");
+                                        // Step 2: TONE.JS
+                                        console.log("Step: 2. Initializing Tone.js...");
                                         await Tone.start();
-                                        console.log("Tone.start() OK.");
-                                        
-                                        step = "tone-unmute";
-                                        console.log("Step: 3. Unmuting Destination...");
-                                        Tone.Destination.mute = false;
-                                        Tone.Destination.volume.value = 0;
-                                        
-                                        step = "tone-resume";
-                                        console.log("Step: 4. Resuming Context...");
-                                        if (Tone.context.state !== 'running') {
-                                            await Tone.context.resume();
-                                        }
-                                        console.log("Context state now:", Tone.context.state);
+                                        console.log("Tone.js state:", Tone.context.state);
 
-                                        // 3. ACTUAL BEEP
-                                        step = "beep-play";
-                                        console.log("Step: 5. Triggering Oscillator...");
-                                        const osc = new Tone.Oscillator(880, "sine").toDestination();
-                                        osc.volume.value = -6; // Audible volume
-                                        osc.start().stop("+0.5");
-                                        console.log("Oscillator triggered.");
-                                        
-                                        toast.success(`Audio Status: ON (${Tone.context.state.toUpperCase()})`);
+                                        // Step 3: OSCILLATOR
+                                        console.log("Step: 3. Triggering Beep...");
+                                        const osc = new Tone.Oscillator(440, "sine").toDestination();
+                                        osc.start().stop("+0.1");
+                                        console.log("Beep triggered: OK");
+
+                                        toast.success("DIAGNÓSTICO OK: Deberías escuchar un pitido");
                                         console.log("--- DIAGNOSTIC COMPLETE (SUCCESS) ---");
                                     } catch (e: any) {
-                                        console.error(`DIAGNOSTIC FAILED at step [${step}]:`, e);
-                                        const msg = e.message || "Unknown Error";
-                                        toast.error(`Error at ${step}: ${msg}`);
+                                        const errName = e.name || "Error";
+                                        const errMsg = e.message || String(e);
+                                        console.error(`DIAGNOSTIC FAILED: ${errName} - ${errMsg}`, e);
+                                        toast.error(`ERROR: ${errName}`);
                                     }
                                 }}
                                 className="w-full py-2 bg-orange-950/30 border border-orange-500/50 text-orange-200 rounded hover:bg-orange-900/50 transition-colors text-xs font-mono flex items-center justify-center gap-2"

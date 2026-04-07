@@ -169,16 +169,24 @@ const DJConsoleComponent: React.FC = () => {
                   setTrackBPM(track.id, bpm);
               }
           }
-      } catch (e) {
-          console.warn(`Analysis failed for ${track.title}:`, e);
+      } catch (e: any) {
+          console.warn(`Analysis failed for ${track.title}:`, e.name || "Error", e.message || "");
       } finally {
           removeAnalyzingTrack(track.id);
       }
   };
 
-  // BACKGROUND SCAN
+  // BACKGROUND SCAN - Disabled on Mobile to prevent OOM
   useEffect(() => {
     if (!hasInteracted) return;
+    
+    // Simple mobile detection
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+        console.log("Background scan disabled on mobile to preserve memory.");
+        return;
+    }
+
     const allTracks = [...playlist, ...sharedCrate];
     const scan = async () => {
         for (const track of allTracks) {
