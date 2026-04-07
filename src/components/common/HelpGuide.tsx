@@ -83,6 +83,9 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                         <div className="pt-4 border-t border-zinc-700">
                              <button
                                 onClick={async () => {
+                                    const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
+                                    const SILENCE_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
+                                    
                                     let step = "init";
                                     try {
                                         console.log("--- START AUDIO DIAGNOSTIC ---");
@@ -90,12 +93,16 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                                         
                                         // 1. HARDWARE UNLOCKER (HTML5 Audio)
                                         step = "html5-play";
-                                        console.log("Step: 1. Playing HTML5 silent pulse...");
-                                        const SILENCE = "data:audio/wav;base64,UklGRjIAAABXQVZFRm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YRAAAAAAAAAAAAAA";
-                                        const unblocker = new Audio(SILENCE);
-                                        unblocker.volume = 0.001; 
-                                        await unblocker.play();
-                                        console.log("HTML5 pulse OK.");
+                                        console.log("Step: 1. Playing HTML5 silent MP3 pulse...");
+                                        
+                                        if (unblocker) {
+                                            unblocker.src = SILENCE_MP3;
+                                            unblocker.volume = 0.001; 
+                                            await unblocker.play();
+                                            console.log("HTML5 pulse OK.");
+                                        } else {
+                                            console.warn("Global unlocker element not found!");
+                                        }
 
                                         // 2. TONE.JS UNLOCK
                                         step = "tone-start";

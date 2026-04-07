@@ -37,30 +37,28 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    try {
-        // 1. HARDWARE UNLOCKER: Play a real 100% silent audio file via HTML5 <audio>
-        // This is THE ONLY way to force iOS from "Ambient" (respects mute switch) to "Playback" (ignores mute switch)
-        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-        const keeper = new Audio(SILENCE);
-        keeper.loop = true;
-        keeper.volume = 0.001; // Nearly silent
-        try { await keeper.play(); } catch (_) { console.warn("Keeper autoplay failed"); }
+    const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
+    const SILENCE_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
 
-        // 2. Now start Tone.js
-        await Tone.start();
-        
-        // 3. Ensure global output is active
-        Tone.Destination.mute = false;
-        Tone.Destination.volume.value = 0; // Unity gain
-        
-        if (Tone.context.state !== 'running') {
-            await Tone.context.resume();
+    try {
+        if (unblocker) {
+            unblocker.src = SILENCE_MP3;
+            unblocker.volume = 0.001;
+            await unblocker.play();
+            console.log("Master Crate Hardware Unlock: OK");
         }
-        
     } catch (e) {
-        console.warn("Audio Context unlock failed:", e);
+        console.warn("Master Crate Hardware Unlock: FAILED", e);
     }
 
+    await Tone.start();
+    Tone.Destination.mute = false;
+    
+    if (Tone.context.state !== 'running') {
+        await Tone.context.resume();
+    }
+    
+    console.log("Audio engine ready. State:", Tone.context.state);
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
   };
