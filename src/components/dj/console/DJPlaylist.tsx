@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import * as Tone from 'tone';
 import { Music, Plus, Database, Loader2 } from 'lucide-react';
 import { useDJStore, type Track } from '../../../store/useDJStore';
 import { saveTrackBlob } from '../../../utils/indexedDB';
@@ -138,13 +139,23 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                                     {/* LOAD BUTTONS — always visible for mobile */}
                                     <div className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
                                         <button
-                                            onClick={() => window.dispatchEvent(new CustomEvent('dj-load-deck-a', { detail: track }))}
+                                            onClick={async () => {
+                                                await Tone.start();
+                                                await Tone.context.resume();
+                                                Tone.Destination.mute = false;
+                                                window.dispatchEvent(new CustomEvent('dj-load-deck-a', { detail: track }));
+                                            }}
                                             className="px-2.5 py-1 bg-emerald-500 text-black text-[8px] font-black rounded-md active:scale-95 transition-transform shadow-[0_0_10px_rgba(16,185,129,0.4)]"
                                         >
                                             LOAD A
                                         </button>
                                         <button
-                                            onClick={() => window.dispatchEvent(new CustomEvent('dj-load-deck-b', { detail: track }))}
+                                            onClick={async () => {
+                                                await Tone.start();
+                                                await Tone.context.resume();
+                                                Tone.Destination.mute = false;
+                                                window.dispatchEvent(new CustomEvent('dj-load-deck-b', { detail: track }));
+                                            }}
                                             className="px-2.5 py-1 bg-orange-500 text-black text-[8px] font-black rounded-md active:scale-95 transition-transform shadow-[0_0_10px_rgba(249,115,22,0.4)]"
                                         >
                                             LOAD B
