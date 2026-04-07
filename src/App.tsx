@@ -40,29 +40,14 @@ function App() {
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
 
-    // 2. ONE-TIME GLOBAL UNLOCK (THE RADIO STRATEGY)
-    if (!document.getElementById('global-keeper')) {
-        const keeper = document.createElement('audio');
-        keeper.id = 'global-keeper';
-        keeper.autoplay = true;
-        keeper.setAttribute('playsinline', 'true');
-        keeper.loop = false; 
-        keeper.volume = 0.01; 
-        document.body.appendChild(keeper);
-        
-        keeper.src = "/Audios/Vociferous (Club Mix).mp3"; 
+    // 2. TRIGGER PERMANENT KEEPER
+    const keeper = document.getElementById('permanent-keeper') as HTMLAudioElement;
+    if (keeper) {
+        // Use the standard silent WAV to avoid background music issues
+        keeper.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
         keeper.play()
-            .then(() => {
-                console.log("Global Session: ACTIVE (KEEPER)");
-                // Silence and remove it quickly
-                setTimeout(() => {
-                    keeper.pause();
-                    if (document.body.contains(keeper)) {
-                        document.body.removeChild(keeper);
-                    }
-                }, 150);
-            })
-            .catch((err) => console.warn("Global Session: BLOCKED", err.name, err.message));
+            .then(() => console.log("Hardware Session: PERMANENTLY_ACTIVE"))
+            .catch((err) => console.warn("Hardware Session: FAILED", err.name));
     }
 
     // 3. TONE START
@@ -70,7 +55,7 @@ function App() {
         Tone.context.resume();
         Tone.Destination.mute = false;
         Tone.Destination.volume.value = 0;
-        console.log("Audio Engine: RUNNING");
+        console.log("Web Audio Engine: READY");
     });
   };
 
@@ -85,8 +70,8 @@ function App() {
         {/* Sección 1: Radio - Con Libreria Integrada */}
         <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50 mb-4">v1.5.65 (PRO_STABILITY) // PERMANENT_KEEPER</div>
                <RadioUnit />
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.64 (STABILITY_FIX) // UNIFIED_KEEPER_V3</div>
                
                {/* MASTER CRATE (Radio Mode) */}
                <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">

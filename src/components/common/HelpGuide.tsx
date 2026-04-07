@@ -82,38 +82,44 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
 
                         <div className="pt-4 border-t border-zinc-700">
                              <button
-                                onClick={async () => {
-                                    const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
-                                    
-                                    try {
-                                        console.log("--- START AUDIO DIAGNOSTIC ---");
-                                        
-                                        // Step 1: SYNC INTERACTION
-                                        console.log("Step: 1. Unlocking HTML5 Audio...");
-                                        const playPromise = unblocker?.play();
-                                        if (playPromise) await playPromise;
-                                        console.log("HTML5 Unlock: OK");
-
-                                        // Step 2: TONE.JS
-                                        console.log("Step: 2. Initializing Tone.js...");
-                                        await Tone.start();
-                                        console.log("Tone.js state:", Tone.context.state);
-
-                                        // Step 3: OSCILLATOR
-                                        console.log("Step: 3. Triggering Beep...");
-                                        const osc = new Tone.Oscillator(440, "sine").toDestination();
-                                        osc.start().stop("+0.1");
-                                        console.log("Beep triggered: OK");
-
-                                        toast.success("DIAGNÓSTICO OK: Deberías escuchar un pitido");
-                                        console.log("--- DIAGNOSTIC COMPLETE (SUCCESS) ---");
-                                    } catch (e: any) {
-                                        const errName = e.name || "Error";
-                                        const errMsg = e.message || String(e);
-                                        console.error(`DIAGNOSTIC FAILED: ${errName} - ${errMsg}`, e);
-                                        toast.error(`ERROR: ${errName}`);
-                                    }
-                                }}
+                                 onClick={async () => {
+                                     const keeper = document.getElementById('permanent-keeper') as HTMLAudioElement;
+                                     
+                                     try {
+                                         console.log("--- START AUDIO DIAGNOSTIC ---");
+                                         
+                                         // Step 1: KEEPER
+                                         console.log("Step: 1. Triggering Permanent Keeper...");
+                                         if (keeper) {
+                                             keeper.src = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+                                             await keeper.play();
+                                         }
+                                         console.log("Keeper: OK");
+ 
+                                         // Step 2: TONE.JS
+                                         console.log("Step: 2. Initializing Web Audio...");
+                                         await Tone.start();
+                                         await Tone.context.resume();
+                                         Tone.Destination.mute = false;
+                                         Tone.Destination.volume.value = 0;
+                                         console.log("Tone State:", Tone.context.state);
+ 
+                                         // Step 3: OSCILLATOR
+                                         console.log("Step: 3. Triggering High-Gain Beep...");
+                                         const osc = new Tone.Oscillator(880, "sine").toDestination();
+                                         osc.volume.value = 0; 
+                                         osc.start().stop("+0.5");
+                                         console.log("Beep: SENT");
+ 
+                                         toast.success("DIAGNÓSTICO OK: Deberías escuchar un pitido fuerte");
+                                         console.log("--- DIAGNOSTIC COMPLETE ---");
+                                     } catch (e: any) {
+                                         const errName = e.name || "Error";
+                                         const errMsg = e.message || String(e);
+                                         console.error(`DIAGNOSTIC FAILED: ${errName} - ${errMsg}`, e);
+                                         toast.error(`ERROR: ${errName}`);
+                                     }
+                                 }}
                                 className="w-full py-2 bg-orange-950/30 border border-orange-500/50 text-orange-200 rounded hover:bg-orange-900/50 transition-colors text-xs font-mono flex items-center justify-center gap-2"
                              >
                                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>

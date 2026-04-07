@@ -42,10 +42,11 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
             {/* Hidden audio element for iOS hardware unlocking */}
             {/* HIDDEN BUT VISIBLE TO BROWSER (To avoid NotSupportedError on iOS) */}
             <audio 
-                id="global-unlocker" 
+                id="permanent-keeper" 
                 preload="auto" 
                 playsInline 
                 loop
+                muted={false}
                 style={{ position: 'fixed', left: '-1000px', top: '-1000px', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} 
             />
 
