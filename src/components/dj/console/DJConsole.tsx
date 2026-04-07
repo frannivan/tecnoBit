@@ -60,42 +60,6 @@ const DJConsoleComponent: React.FC = () => {
   const [pitchB, setPitchB] = useState(1.0);
   const [isPoweredOn, setIsPoweredOn] = useState(false);
 
-  const handleLoadA = useCallback(async (item: Track) => {
-      const cachedBlob = await getTrackBlob(item.id);
-      const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
-      if (loadUrl) {
-          setUrlA(loadUrl);
-          setTrackNameA(item.title);
-          setTrackIdA(item.id);
-          setFullTrackA(item);
-          setPitchA(1.0);
-      }
-  }, []);
-
-  const handleLoadB = useCallback(async (item: Track) => {
-      const cachedBlob = await getTrackBlob(item.id);
-      const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
-      if (loadUrl) {
-          setUrlB(loadUrl);
-          setTrackNameB(item.title);
-          setTrackIdB(item.id);
-          setFullTrackB(item);
-          setPitchB(1.0);
-      }
-  }, []);
-
-  // Listeners para carga explícita desde la librería
-  useEffect(() => {
-    const loadA = (e: any) => handleLoadA(e.detail);
-    const loadB = (e: any) => handleLoadB(e.detail);
-    window.addEventListener('dj-load-deck-a', loadA as any);
-    window.addEventListener('dj-load-deck-b', loadB as any);
-    return () => {
-        window.removeEventListener('dj-load-deck-a', loadA as any);
-        window.removeEventListener('dj-load-deck-b', loadB as any);
-    };
-  }, [handleLoadA, handleLoadB]);
-
   const handlePowerOn = async () => {
       if (isPoweredOn) {
           Tone.Destination.mute = true;
@@ -120,6 +84,44 @@ const DJConsoleComponent: React.FC = () => {
 
       setIsPoweredOn(true);
   };
+
+  const handleLoadA = useCallback(async (item: Track) => {
+      if (!isPoweredOn) await handlePowerOn();
+      const cachedBlob = await getTrackBlob(item.id);
+      const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
+      if (loadUrl) {
+          setUrlA(loadUrl);
+          setTrackNameA(item.title);
+          setTrackIdA(item.id);
+          setFullTrackA(item);
+          setPitchA(1.0);
+      }
+  }, [isPoweredOn]);
+
+  const handleLoadB = useCallback(async (item: Track) => {
+      if (!isPoweredOn) await handlePowerOn();
+      const cachedBlob = await getTrackBlob(item.id);
+      const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
+      if (loadUrl) {
+          setUrlB(loadUrl);
+          setTrackNameB(item.title);
+          setTrackIdB(item.id);
+          setFullTrackB(item);
+          setPitchB(1.0);
+      }
+  }, [isPoweredOn]);
+
+  // Listeners para carga explícita desde la librería
+  useEffect(() => {
+    const loadA = (e: any) => handleLoadA(e.detail);
+    const loadB = (e: any) => handleLoadB(e.detail);
+    window.addEventListener('dj-load-deck-a', loadA as any);
+    window.addEventListener('dj-load-deck-b', loadB as any);
+    return () => {
+        window.removeEventListener('dj-load-deck-a', loadA as any);
+        window.removeEventListener('dj-load-deck-b', loadB as any);
+    };
+  }, [handleLoadA, handleLoadB]);
 
   // Force mute if not powered on
   useEffect(() => {

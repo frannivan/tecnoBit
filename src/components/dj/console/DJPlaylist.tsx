@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Music, Plus, Clock, Database, Loader2 } from 'lucide-react';
 import { useDJStore, type Track } from '../../../store/useDJStore';
+import { saveTrackBlob } from '../../../utils/indexedDB';
 
 interface Props {
   selectedTrackId: string | null;
@@ -22,17 +23,25 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Para la Master Playlist local
-    files.forEach(file => {
+    for (const file of files) {
+      const trackId = Math.random().toString(36).substr(2, 9);
       const track: Track = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: trackId,
         title: file.name.replace(/\.[^/.]+$/, ""),
         artist: 'Local File',
         timestamp: Date.now(),
         audioUrl: URL.createObjectURL(file) 
       };
+      
+      try {
+        // Guardar el blob inmediatamente para asegurar persistencia
+        await saveTrackBlob({ id: trackId, blob: file, name: track.title, type: file.type });
+      } catch (err) {
+        console.error("Local save failed:", err);
+      }
+      
       addToPlaylist(track);
-    });
+    }
   };
 
   const currentTracks = [...playlist, ...sharedCrate].sort((a,b) => b.timestamp - a.timestamp);

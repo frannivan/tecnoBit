@@ -281,7 +281,7 @@ export const useDJStore = create<DJState>()(
 
       saveTrackToLocal: async (track) => {
         // Fallback for missing audioUrl (e.g. some system tracks)
-        if (!track.audioUrl || !track.audioUrl.startsWith('http')) return; 
+        if (!track.audioUrl || (!track.audioUrl.startsWith('http') && !track.audioUrl.startsWith('blob:'))) return; 
         
         try {
           // Check if already cached
