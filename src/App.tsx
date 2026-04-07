@@ -7,7 +7,6 @@ import { DJPlaylist } from './components/dj/console/DJPlaylist';
 import { useAudioPlayer } from './hooks/useAudioPlayer';
 import { StartScreen } from './components/common/StartScreen';
 import { HelpGuide } from './components/common/HelpGuide';
-import { StationList } from './components/radio/StationList';
 import { useRadioStore } from './store/useRadioStore';
 import { useDJStore } from './store/useDJStore';
 import { HelpCircle } from 'lucide-react';
@@ -37,32 +36,26 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    // 1. HARDWARE UNLOCKER (MUST BE FIRST & BIND SRC TO GESTURE)
-    const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
-    console.log("Step: 1. Unlocking HTML5 Audio...");
-    if (unblocker) {
-        unblocker.src = SILENCE_WAV;
-        const playPromise = unblocker.play();
-        if (playPromise) {
-            // Create a timeout to prevent hanging on Step 1
-            await Promise.race([
-                playPromise,
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000))
-            ]);
-        }
-    }
-    console.log("HTML5 Unlock: OK");
-
-    await Tone.start();
-    Tone.Destination.mute = false;
-    
-    if (Tone.context.state !== 'running') {
-        await Tone.context.resume();
-    }
-    
-    console.log("Audio engine ready. State:", Tone.context.state);
+    // 0. SET INTERACTION (UI PROGRESS)
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
+
+    // 1. PURE USER GESTURE (MUST BE ABSOLUTE FIRST LINE)
+    const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
+    if (unblocker) {
+        unblocker.src = SILENCE_WAV;
+        unblocker.play().catch(() => {}); 
+    }
+
+    try {
+        await Tone.start();
+        if (Tone.context.state !== 'running') {
+            await Tone.context.resume();
+        }
+        console.log("Audio engine ready. State:", Tone.context.state);
+    } catch (e) {
+        console.warn("Tone.js Start failed:", e);
+    }
   };
 
   return (
@@ -77,9 +70,7 @@ function App() {
         <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
                <RadioUnit />
-               <div className="mt-12">
-                  <StationList />
-               </div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.55 (STABILITY_FIX) // NON_BLOCKING_ULOCK</div>
                
                {/* MASTER CRATE (Radio Mode) */}
                <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">

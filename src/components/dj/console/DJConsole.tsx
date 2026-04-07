@@ -6,6 +6,7 @@ import { type Track, useDJStore } from '../../../store/useDJStore';
 import { useRadioStore } from '../../../store/useRadioStore';
 import { getTrackBlob, saveTrackBlob } from '../../../utils/indexedDB';
 import { detectBPM } from '../../../utils/bpmDetector';
+import { SILENCE_WAV } from '../../layout/MainLayout';
 import * as Tone from 'tone';
 import jsmediatags from 'jsmediatags';
 
@@ -54,32 +55,46 @@ const DJConsoleComponent: React.FC = () => {
   const [crossfade, setCrossfade] = useState(0.5);
   const [volA, setVolA] = useState(100);
   const [volB, setVolB] = useState(100);
-
-  // ESTADO DE PITCH CENTRALIZADO PARA SYNC
   const [pitchA, setPitchA] = useState(1.0);
   const [pitchB, setPitchB] = useState(1.0);
   const [isPoweredOn, setIsPoweredOn] = useState(false);
 
+  const playlist = useDJStore(state => state.playlist);
+  const sharedCrate = useDJStore(state => state.sharedCrate);
+  const history = useDJStore(state => state.history);
+  const setTrackBPM = useDJStore(state => state.setTrackBPM);
+  const hasInteracted = useRadioStore(state => state.hasInteracted);
+
+  const audioA = useDJAudio(urlA, trackIdA, 'A');
+  const audioB = useDJAudio(urlB, trackIdB, 'B');
+
+  const { addAnalyzingTrack, removeAnalyzingTrack } = useDJStore();
+
   const handlePowerOn = async () => {
+      setIsPoweredOn(!isPoweredOn);
       if (isPoweredOn) {
-          // Apagar: silenciar el audio
           Tone.Destination.mute = true;
-          setIsPoweredOn(false);
           return;
       }
-      // Encender: desbloquear audio de iOS y iniciar Tone.js
-      const PULSE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-      const unblocker = new Audio(PULSE);
-      unblocker.play().catch(() => {});
-      await Tone.start();
-      await Tone.context.resume();
-      Tone.Destination.mute = false;
-      // Click de encendido
-      const osc = new Tone.Oscillator(100, "sine").toDestination();
-      osc.frequency.rampTo(40, 0.05);
-      osc.volume.value = -6;
-      osc.start().stop("+0.05");
-      setIsPoweredOn(true);
+      
+      // Non-blocking hardware unlock
+      const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
+      if (unblocker) {
+          unblocker.src = SILENCE_WAV;
+          unblocker.play().catch(() => {});
+      }
+
+      try {
+          await Tone.start();
+          await Tone.context.resume();
+          Tone.Destination.mute = false;
+          const osc = new Tone.Oscillator(100, "sine").toDestination();
+          osc.frequency.rampTo(40, 0.05);
+          osc.volume.value = -6;
+          osc.start().stop("+0.05");
+      } catch (e) {
+          console.error("Audio engine failed to start", e);
+      }
   };
 
   const handleLoadA = useCallback(async (item: Track) => {
@@ -106,7 +121,6 @@ const DJConsoleComponent: React.FC = () => {
       }
   }, []);
 
-  // Listeners para carga explícita desde la librería
   useEffect(() => {
     const loadA = (e: any) => handleLoadA(e.detail);
     const loadB = (e: any) => handleLoadB(e.detail);
@@ -118,25 +132,12 @@ const DJConsoleComponent: React.FC = () => {
     };
   }, [handleLoadA, handleLoadB]);
 
-  
-  const playlist = useDJStore(state => state.playlist);
-  const sharedCrate = useDJStore(state => state.sharedCrate);
-  const history = useDJStore(state => state.history);
-  const setTrackBPM = useDJStore(state => state.setTrackBPM);
-  const hasInteracted = useRadioStore(state => state.hasInteracted);
-
-  const audioA = useDJAudio(urlA, trackIdA, 'A');
-  const audioB = useDJAudio(urlB, trackIdB, 'B');
-
   const findTrackBPM = (u: string, n: string) => {
       const all = [...playlist, ...sharedCrate, ...history];
       return all.find(t => t.audioUrl === u || t.title === n)?.bpm || 128;
   };
 
-  const { addAnalyzingTrack, removeAnalyzingTrack } = useDJStore();
-
   const analyzeTrack = async (track: Track) => {
-      // Usar el store global para el set de análisis
       const currentAnalyzing = useDJStore.getState().analyzingTrackIds;
       if (track.bpm || currentAnalyzing.has(track.id)) return;
       
@@ -176,16 +177,10 @@ const DJConsoleComponent: React.FC = () => {
       }
   };
 
-  // BACKGROUND SCAN - Disabled on Mobile to prevent OOM
   useEffect(() => {
     if (!hasInteracted) return;
-    
-    // Simple mobile detection
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-        console.log("Background scan disabled on mobile to preserve memory.");
-        return;
-    }
+    if (isMobile) return;
 
     const allTracks = [...playlist, ...sharedCrate];
     const scan = async () => {
@@ -199,7 +194,6 @@ const DJConsoleComponent: React.FC = () => {
     scan();
   }, [playlist.length, sharedCrate.length, hasInteracted]);
 
-  // SYNC LOGIC
   const handleSyncA = () => {
     const bpmA = findTrackBPM(urlA, trackNameA);
     const bpmB = findTrackBPM(urlB, trackNameB);
@@ -222,16 +216,11 @@ const DJConsoleComponent: React.FC = () => {
     audioB.syncPhase(infoA.current, targetBPM, audioA.beatOffset, bpmB);
   };
 
-
-  // SMART AUTO-LOAD: Listen for global library events
   useEffect(() => {
     const handleAutoLoad = async (e: any) => {
         const track = e.detail;
-        
-        // Auto-Power ON if needed
         if (!isPoweredOn) {
             await handlePowerOn();
-            // Wait a bit for the engine to warm up
             await new Promise(r => setTimeout(r, 300));
         }
 
@@ -256,7 +245,6 @@ const DJConsoleComponent: React.FC = () => {
   return (
     <div className="flex flex-col items-center gap-4 py-2 w-full bg-[#030303] min-h-screen text-white/90 font-sans selection:bg-sky-500/30 overflow-hidden">
       
-      {/* MASTER WAVEFORM AREA */}
       <div className="w-full max-w-[1400px] bg-[#0c0c0c] border border-white/5 p-1 px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
           <div className="relative h-[80px] overflow-hidden group">
              <DJWaveform url={urlA} trackId={trackIdA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
@@ -291,9 +279,7 @@ const DJConsoleComponent: React.FC = () => {
             beatOffset={audioA.beatOffset} 
         />
 
-        {/* MIXER */}
         <div className="flex flex-col items-center gap-4 bg-zinc-950 border-x-4 border-zinc-900 px-3 md:px-6 py-6 rounded-3xl shadow-[0_45px_90px_rgba(0,0,0,0.9)] min-w-[240px] md:min-w-[260px]">
-          {/* Hardware Power Switch */}
           <div className="flex flex-col items-center gap-2 mb-2 p-3 bg-black/40 rounded-2xl border border-white/5 w-full shadow-inner">
              <button 
                 onClick={handlePowerOn}
@@ -309,7 +295,7 @@ const DJConsoleComponent: React.FC = () => {
 
           <div className="flex items-center gap-3 md:gap-8 h-64">
              <div className="flex flex-col items-center h-full gap-6">
-                <div className="h-10" /> {/* Spacer */}
+                <div className="h-10" />
                 <ProfessionalFader label="CH 1" value={volA} onChange={setVolA} min={0} max={100} color="#10b981" />
              </div>
              <div className="flex gap-2 pt-16 pb-6 h-full border-x border-white/5 px-2 md:px-3 bg-[#050505] rounded-xl shadow-inner">
@@ -317,7 +303,7 @@ const DJConsoleComponent: React.FC = () => {
                 <VUMeter getLevel={audioB.getLevel} isPlaying={audioB.isPlaying} />
              </div>
              <div className="flex flex-col items-center h-full gap-6">
-                <div className="h-10" /> {/* Spacer */}
+                <div className="h-10" />
                 <ProfessionalFader label="CH 2" value={volB} onChange={setVolB} min={0} max={100} color="#f97316" />
              </div>
           </div>
@@ -343,7 +329,6 @@ const DJConsoleComponent: React.FC = () => {
             beatOffset={audioB.beatOffset} 
         />
       </div>
-
     </div>
   );
 };
