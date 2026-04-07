@@ -84,8 +84,10 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                              <button
                                 onClick={async () => {
                                     try {
-                                        // Use existing Tone.js context instead of creating new ones
+                                        // Use existing Tone.js context and ensure NOT muted
                                         await Tone.start();
+                                        Tone.Destination.mute = false;
+                                        
                                         if (Tone.context.state !== 'running') {
                                             await Tone.context.resume();
                                         }
@@ -94,7 +96,7 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                                         osc.volume.value = -6; // Audible volume
                                         osc.start().stop("+0.5");
                                         
-                                        toast.success(`Audio Status: ${Tone.context.state.toUpperCase()}`);
+                                        toast.success(`Audio Status: ON (${Tone.context.state.toUpperCase()})`);
                                         console.log("Tone.js Diagnostic Beep Triggered. State:", Tone.context.state);
                                     } catch (e) {
                                         console.error("Diagnostic failed:", e);

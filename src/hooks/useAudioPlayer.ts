@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useRadioStore } from '../store/useRadioStore';
+import { useDJStore } from '../store/useDJStore';
 
 export const useAudioPlayer = () => {
   const currentStation = useRadioStore(state => state.currentStation);
@@ -92,36 +93,53 @@ export const useAudioPlayer = () => {
     return () => window.removeEventListener('radio-play-track', (handleRadioTrack as any));
   }, [setStation]);
 
+  // Reactively track mixer state
+  const isPlayingA = useDJStore(state => state.isPlayingA);
+  const isPlayingB = useDJStore(state => state.isPlayingB);
+
   // Sync state between store and physical player 
   useEffect(() => {
-    const audio = getAudio(activeDeck);
-    if (!audio || !currentStation) return;
+    const audio1 = getAudio(1);
+    const audio2 = getAudio(2);
+    const mixerActive = isPlayingA || isPlayingB;
 
-    if (isPlaying) {
-        if (audio.src !== currentStation.streamUrl) {
-            audio.src = currentStation.streamUrl;
-            audio.load();
+    // Handle Active Deck
+    const mainAudio = activeDeck === 1 ? audio1 : audio2;
+    const secondAudio = activeDeck === 1 ? audio2 : audio1;
+
+    if (isPlaying && !mixerActive) {
+        if (mainAudio.src !== currentStation?.streamUrl) {
+            mainAudio.src = currentStation?.streamUrl || '';
+            mainAudio.load();
         }
-        audio.volume = masterVolume;
-        audio.play().then(() => {
-            setLoading(false);
-        }).catch(() => {
-            setLoading(false);
-        });
+        mainAudio.volume = masterVolume;
+        mainAudio.play().then(() => setLoading(false)).catch(() => setLoading(false));
+
+        // Ensure secondary is silent but alive
+        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+        if (secondAudio.src !== SILENCE) {
+            secondAudio.src = SILENCE;
+            secondAudio.loop = true;
+        }
+        secondAudio.volume = 0.001; // Absolute minimum
+        secondAudio.play().catch(() => {});
     } else {
         setLoading(false);
-        // SECURE SILENT PULSE (1-second 100% silent WAV)
+        // FORCE BOTH TO SILENCE (KEEP-ALIVE)
         const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-        if (audio.src !== SILENCE) {
-            audio.src = SILENCE;
-            audio.loop = true;
-        }
-        audio.volume = 1.0; // High volume of pure silence data
-        audio.play().catch(() => {});
+        [audio1, audio2].forEach(a => {
+            if (a.src !== SILENCE) {
+                a.src = SILENCE;
+                a.loop = true;
+                a.load();
+            }
+            a.volume = 0.001; // Silent on background
+            a.play().catch(() => {});
+        });
     }
 
-    audio.muted = isMuted;
-  }, [currentStation, isPlaying, activeDeck, masterVolume, isMuted]);
+    [audio1, audio2].forEach(a => { a.muted = isMuted; });
+  }, [currentStation, isPlaying, activeDeck, masterVolume, isMuted, isPlayingA, isPlayingB]);
 
   return null;
 };
