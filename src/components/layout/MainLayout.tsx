@@ -3,7 +3,7 @@ import { useWakeLock } from '../../hooks/useWakeLock';
 import { DebugConsole } from '../common/DebugConsole';
 import { Toaster } from 'react-hot-toast';
 
-const SILENCE_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+export const SILENCE_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
 
 interface Props {
   children: React.ReactNode;
@@ -13,16 +13,6 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
   const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   useEffect(() => {
-    const setupUnlocker = () => {
-        const el = document.getElementById('global-unlocker') as HTMLAudioElement;
-        if (el && !el.src) {
-            el.src = SILENCE_WAV;
-            el.load();
-            console.log("Global Audio Unlocker: Simple WAV Initialized");
-        }
-    };
-    setupUnlocker();
-    
     requestWakeLock();
     return () => {
       releaseWakeLock();
@@ -40,7 +30,7 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                         <div className="h-0.5 w-full bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </div>
                 </div>
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.53 (STABILITY_FIX) // CLEAN_WAV_ULOCK</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.54 (STABILITY_FIX) // GESTURE_SRC_BIND</div>
             </header>
             
             <main className="flex-1 p-4 md:p-8 flex flex-col gap-8">

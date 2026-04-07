@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as Tone from 'tone';
-import { MainLayout } from './components/layout/MainLayout';
+import { MainLayout, SILENCE_WAV } from './components/layout/MainLayout';
 import { RadioUnit } from './components/radio/RadioUnit';
 import { DJConsole } from './components/dj/console/DJConsole';
 import { DJPlaylist } from './components/dj/console/DJPlaylist';
@@ -37,24 +37,21 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    // 1. HARDWARE UNLOCKER (MUST BE FIRST & SYNC-ISH)
+    // 1. HARDWARE UNLOCKER (MUST BE FIRST & BIND SRC TO GESTURE)
     const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
+    console.log("Step: 1. Unlocking HTML5 Audio...");
     if (unblocker) {
-        unblocker.play().catch(e => console.warn("Master Crate Hardware Unlock: FAILED", e.name, e.message));
-    }
-
-    const SILENCE_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
-
-    try {
-        if (unblocker) {
-            unblocker.src = SILENCE_MP3;
-            unblocker.volume = 0.001;
-            await unblocker.play();
-            console.log("Master Crate Hardware Unlock: OK");
+        unblocker.src = SILENCE_WAV;
+        const playPromise = unblocker.play();
+        if (playPromise) {
+            // Create a timeout to prevent hanging on Step 1
+            await Promise.race([
+                playPromise,
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000))
+            ]);
         }
-    } catch (e) {
-        console.warn("Master Crate Hardware Unlock: FAILED", e);
     }
+    console.log("HTML5 Unlock: OK");
 
     await Tone.start();
     Tone.Destination.mute = false;
