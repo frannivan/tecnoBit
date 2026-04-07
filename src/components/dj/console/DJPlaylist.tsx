@@ -199,7 +199,7 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                   <div className="w-10 h-1 bg-orange-500/20 rounded-full overflow-hidden"><div className="w-1/3 h-full bg-orange-500"></div></div>
               </div>
           </div>
-          <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">TecnoBit Advanced Media Engine v1.5.39</p>
+          <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.4em] italic">TecnoBit Advanced Media Engine v1.5.40</p>
       </div>
     </div>
   );
