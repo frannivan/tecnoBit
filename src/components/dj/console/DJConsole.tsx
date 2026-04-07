@@ -295,7 +295,7 @@ const DJConsoleComponent: React.FC = () => {
           {/* Hardware Power Switch */}
           <div className="flex flex-col items-center gap-2 mb-2 p-3 bg-black/40 rounded-2xl border border-white/5 w-full shadow-inner">
              <button 
-                onClick={isPoweredOn ? undefined : handlePowerOn}
+                onClick={handlePowerOn}
                 className={`w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-500 shadow-2xl active:scale-95 ${isPoweredOn ? 'bg-emerald-500 border-white/30 shadow-[0_0_35px_#10b981] cursor-default' : 'bg-red-900 border-red-700 hover:bg-red-600 hover:border-red-500 cursor-pointer animate-pulse'}`}
              >
                 <div className={`w-4 h-4 rounded-full ${isPoweredOn ? 'bg-white shadow-[0_0_5px_white]' : 'bg-red-400 opacity-50'}`} />
