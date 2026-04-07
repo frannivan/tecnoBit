@@ -38,11 +38,20 @@ function App() {
 
   const handleStart = async () => {
     try {
-        // Initialize Tone.js Web Audio — will work because user clicked the button
+        // 1. HARDWARE UNLOCKER: Play a real 100% silent audio file via HTML5 <audio>
+        // This is THE ONLY way to force iOS from "Ambient" (respects mute switch) to "Playback" (ignores mute switch)
+        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+        const keeper = new Audio(SILENCE);
+        keeper.loop = true;
+        keeper.volume = 0.001; // Nearly silent
+        try { await keeper.play(); } catch (_) { console.warn("Keeper autoplay failed"); }
+
+        // 2. Now start Tone.js
         await Tone.start();
         
-        // Ensure destination is NOT muted for initial beeps/mixer
+        // 3. Ensure global output is active
         Tone.Destination.mute = false;
+        Tone.Destination.volume.value = 0; // Unity gain
         
         if (Tone.context.state !== 'running') {
             await Tone.context.resume();

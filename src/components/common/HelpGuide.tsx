@@ -84,14 +84,22 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                              <button
                                 onClick={async () => {
                                     try {
-                                        // Use existing Tone.js context and ensure NOT muted
+                                        // 1. HARDWARE UNLOCKER (HTML5 Audio)
+                                        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+                                        const unblocker = new Audio(SILENCE);
+                                        unblocker.volume = 0.001; 
+                                        await unblocker.play();
+
+                                        // 2. TONE.JS UNLOCK
                                         await Tone.start();
                                         Tone.Destination.mute = false;
+                                        Tone.Destination.volume.value = 0;
                                         
                                         if (Tone.context.state !== 'running') {
                                             await Tone.context.resume();
                                         }
 
+                                        // 3. ACTUAL BEEP
                                         const osc = new Tone.Oscillator(880, "sine").toDestination();
                                         osc.volume.value = -6; // Audible volume
                                         osc.start().stop("+0.5");
