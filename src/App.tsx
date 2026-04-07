@@ -36,16 +36,19 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
-    // 0. SET INTERACTION (UI PROGRESS)
-    setHasInteracted(true);
-    if (!hasInteracted) setShowHelp(true);
-
     // 1. PURE USER GESTURE (MUST BE ABSOLUTE FIRST LINE)
+    // No state updates or async logic should happen before this to satisfy Safari
     const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
     if (unblocker) {
         unblocker.src = SILENCE_WAV;
-        unblocker.play().catch(() => {}); 
+        unblocker.play()
+            .then(() => console.log("Global Hardware Unlock: SUCCESS"))
+            .catch((err) => console.warn("Global Hardware Unlock: BLOCKED", err.name, err.message)); 
     }
+
+    // 2. SET INTERACTION (UI PROGRESS)
+    setHasInteracted(true);
+    if (!hasInteracted) setShowHelp(true);
 
     try {
         await Tone.start();
@@ -70,7 +73,7 @@ function App() {
         <section className="mt-8 transition-all duration-500">
             <div className="bg-zinc-950/40 p-10 rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl">
                <RadioUnit />
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.55 (STABILITY_FIX) // NON_BLOCKING_ULOCK</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.58 (STABILITY_FIX) // GESTURE_PRIORITY</div>
                
                {/* MASTER CRATE (Radio Mode) */}
                <div className="mt-16 bg-zinc-950/20 rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden min-h-[400px]">
