@@ -58,7 +58,7 @@ const DJConsoleComponent: React.FC = () => {
   // ESTADO DE PITCH CENTRALIZADO PARA SYNC
   const [pitchA, setPitchA] = useState(1.0);
   const [pitchB, setPitchB] = useState(1.0);
-  const [isPoweredOn, setIsPoweredOn] = useState(false);
+  const [isPoweredOn, setIsPoweredOn] = useState(true);
 
   const handlePowerOn = async () => {
       if (isPoweredOn) {
@@ -123,10 +123,6 @@ const DJConsoleComponent: React.FC = () => {
     };
   }, [handleLoadA, handleLoadB]);
 
-  // Force mute if not powered on
-  useEffect(() => {
-    Tone.Destination.mute = !isPoweredOn;
-  }, [isPoweredOn]);
   
   const playlist = useDJStore(state => state.playlist);
   const sharedCrate = useDJStore(state => state.sharedCrate);
