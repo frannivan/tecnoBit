@@ -3,7 +3,7 @@ import { useWakeLock } from '../../hooks/useWakeLock';
 import { DebugConsole } from '../common/DebugConsole';
 import { Toaster } from 'react-hot-toast';
 
-export const SILENCE_WAV = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
+export const SILENCE_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
 
 interface Props {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                         <div className="h-0.5 w-full bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </div>
                 </div>
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.56 (STABILITY_FIX) // VISIBLE_UNBLOCKER</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.57 (STABILITY_FIX) // PERSISTENT_SESSION</div>
             </header>
             
             <main className="flex-1 p-4 md:p-8 flex flex-col gap-8">
@@ -45,6 +45,7 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                 id="global-unlocker" 
                 preload="auto" 
                 playsInline 
+                loop
                 style={{ position: 'fixed', left: '-1000px', top: '-1000px', opacity: 0, pointerEvents: 'none', width: '1px', height: '1px' }} 
             />
 
