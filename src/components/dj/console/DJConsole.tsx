@@ -6,7 +6,6 @@ import { type Track, useDJStore } from '../../../store/useDJStore';
 import { useRadioStore } from '../../../store/useRadioStore';
 import { getTrackBlob, saveTrackBlob } from '../../../utils/indexedDB';
 import { detectBPM } from '../../../utils/bpmDetector';
-import { SILENCE_WAV } from '../../layout/MainLayout';
 import * as Tone from 'tone';
 import jsmediatags from 'jsmediatags';
 
@@ -77,13 +76,6 @@ const DJConsoleComponent: React.FC = () => {
           return;
       }
       
-      // Non-blocking hardware unlock
-      const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
-      if (unblocker) {
-          unblocker.src = SILENCE_WAV;
-          unblocker.play().catch(() => {});
-      }
-
       try {
           await Tone.start();
           await Tone.context.resume();

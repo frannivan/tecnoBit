@@ -115,27 +115,12 @@ export const useAudioPlayer = () => {
         mainAudio.volume = masterVolume;
         mainAudio.play().then(() => setLoading(false)).catch(() => setLoading(false));
 
-        // Ensure secondary is silent but alive
-        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-        if (secondAudio.src !== SILENCE) {
-            secondAudio.src = SILENCE;
-            secondAudio.loop = true;
-        }
-        secondAudio.volume = 0.001; // Absolute minimum
-        secondAudio.play().catch(() => {});
+        // Ensure secondary is stopped
+        secondAudio.pause();
     } else {
         setLoading(false);
-        // FORCE BOTH TO SILENCE (KEEP-ALIVE)
-        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
-        [audio1, audio2].forEach(a => {
-            if (a.src !== SILENCE) {
-                a.src = SILENCE;
-                a.loop = true;
-                a.load();
-            }
-            a.volume = 0.001; // Silent on background
-            a.play().catch(() => {});
-        });
+        audio1.pause();
+        audio2.pause();
     }
 
     [audio1, audio2].forEach(a => { a.muted = isMuted; });
