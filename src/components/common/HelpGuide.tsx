@@ -83,33 +83,39 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                         <div className="pt-4 border-t border-zinc-700">
                              <button
                                 onClick={async () => {
+                                    let step = "init";
                                     try {
                                         // 1. HARDWARE UNLOCKER (HTML5 Audio)
-                                        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+                                        step = "html5-play";
+                                        const SILENCE = "data:audio/wav;base64,UklGRjIAAABXQVZFRm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YRAAAAAAAAAAAAAA";
                                         const unblocker = new Audio(SILENCE);
                                         unblocker.volume = 0.001; 
                                         await unblocker.play();
 
                                         // 2. TONE.JS UNLOCK
+                                        step = "tone-start";
                                         await Tone.start();
+                                        
+                                        step = "tone-unmute";
                                         Tone.Destination.mute = false;
                                         Tone.Destination.volume.value = 0;
                                         
+                                        step = "tone-resume";
                                         if (Tone.context.state !== 'running') {
                                             await Tone.context.resume();
                                         }
 
                                         // 3. ACTUAL BEEP
+                                        step = "beep-play";
                                         const osc = new Tone.Oscillator(880, "sine").toDestination();
                                         osc.volume.value = -6; // Audible volume
                                         osc.start().stop("+0.5");
                                         
                                         toast.success(`Audio Status: ON (${Tone.context.state.toUpperCase()})`);
-                                        console.log("Tone.js Diagnostic Beep Triggered. State:", Tone.context.state);
                                     } catch (e: any) {
-                                        console.error("Diagnostic failed:", e);
+                                        console.error(`Diagnostic failed at step ${step}:`, e);
                                         const msg = e.message || "Unknown Error";
-                                        toast.error(`Audio Blocked: ${msg}`);
+                                        toast.error(`Error at ${step}: ${msg}`);
                                     }
                                 }}
                                 className="w-full py-2 bg-orange-950/30 border border-orange-500/50 text-orange-200 rounded hover:bg-orange-900/50 transition-colors text-xs font-mono flex items-center justify-center gap-2"
