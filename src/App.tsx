@@ -36,8 +36,21 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
+  // AUDIO KEEPER — silent loop that forces iOS into "playback" audio mode
+  // This is what makes Tone.js work on iPhone despite the mute switch and browser restrictions
+  const keeperRef = useState<HTMLAudioElement | null>(null);
+
   const handleStart = async () => {
     try {
+        // 1. Play silent HTML5 audio FIRST — forces iOS audio session to "playback" mode
+        const SILENCE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+        const keeper = new Audio(SILENCE);
+        keeper.loop = true;
+        keeper.volume = 0.001; // Nearly silent but keeps session alive
+        try { await keeper.play(); } catch (_) {}
+        keeperRef[1](keeper);
+
+        // 2. Now initialize Tone.js Web Audio — will work because audio session is active
         await Tone.start();
         await Tone.context.resume();
     } catch (e) {
