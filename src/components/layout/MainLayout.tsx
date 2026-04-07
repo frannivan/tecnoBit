@@ -3,7 +3,7 @@ import { useWakeLock } from '../../hooks/useWakeLock';
 import { DebugConsole } from '../common/DebugConsole';
 import { Toaster } from 'react-hot-toast';
 
-const SILENCE_MP3_BASE64 = "SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
+const SILENCE_WAV = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
 
 interface Props {
   children: React.ReactNode;
@@ -16,19 +16,9 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
     const setupUnlocker = () => {
         const el = document.getElementById('global-unlocker') as HTMLAudioElement;
         if (el && !el.src) {
-            try {
-                const binary = atob(SILENCE_MP3_BASE64);
-                const bytes = new Uint8Array(binary.length);
-                for (let i = 0; i < binary.length; i++) {
-                    bytes[i] = binary.charCodeAt(i);
-                }
-                const blob = new Blob([bytes], { type: 'audio/mpeg' });
-                el.src = URL.createObjectURL(blob);
-                el.load();
-                console.log("Global Audio Unlocker: Blob Initialized");
-            } catch (e) {
-                console.error("Global Audio Unlocker: Blob Failed", e);
-            }
+            el.src = SILENCE_WAV;
+            el.load();
+            console.log("Global Audio Unlocker: Simple WAV Initialized");
         }
     };
     setupUnlocker();
@@ -50,7 +40,7 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                         <div className="h-0.5 w-full bg-orange-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </div>
                 </div>
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.52 (STABILITY_FIX) // MOBILE_SCAN_OFF</div>
+                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.53 (STABILITY_FIX) // CLEAN_WAV_ULOCK</div>
             </header>
             
             <main className="flex-1 p-4 md:p-8 flex flex-col gap-8">

@@ -37,7 +37,12 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
 
   const handleStart = async () => {
+    // 1. HARDWARE UNLOCKER (MUST BE FIRST & SYNC-ISH)
     const unblocker = document.getElementById('global-unlocker') as HTMLAudioElement;
+    if (unblocker) {
+        unblocker.play().catch(e => console.warn("Master Crate Hardware Unlock: FAILED", e.name, e.message));
+    }
+
     const SILENCE_MP3 = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZTU4LjEzNC4xMDAAAAAAAAAAAAAAAP/N0AAAAAAAbAEEAAABNIDZTAAAAAO76VnI77vn57/e/3v97/e/3v97/e/3v97/e/3v97/e/3v9/ff/f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/3/9//f/w==";
 
     try {
