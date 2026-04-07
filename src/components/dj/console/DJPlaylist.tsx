@@ -140,6 +140,10 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                                     <div className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
                                         <button
                                             onClick={async () => {
+                                                // Unlock iOS audio session (switches from ambient to playback mode)
+                                                const PULSE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+                                                const unblocker = new Audio(PULSE);
+                                                unblocker.play().catch(() => {});
                                                 await Tone.start();
                                                 await Tone.context.resume();
                                                 Tone.Destination.mute = false;
@@ -151,6 +155,10 @@ export const DJPlaylist: React.FC<Props> = ({ selectedTrackId, onSelect }) => {
                                         </button>
                                         <button
                                             onClick={async () => {
+                                                // Unlock iOS audio session (switches from ambient to playback mode)
+                                                const PULSE = "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/wD/";
+                                                const unblocker = new Audio(PULSE);
+                                                unblocker.play().catch(() => {});
                                                 await Tone.start();
                                                 await Tone.context.resume();
                                                 Tone.Destination.mute = false;
