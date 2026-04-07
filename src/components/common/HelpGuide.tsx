@@ -106,9 +106,10 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                                         
                                         toast.success(`Audio Status: ON (${Tone.context.state.toUpperCase()})`);
                                         console.log("Tone.js Diagnostic Beep Triggered. State:", Tone.context.state);
-                                    } catch (e) {
+                                    } catch (e: any) {
                                         console.error("Diagnostic failed:", e);
-                                        toast.error("Audio block identified.");
+                                        const msg = e.message || "Unknown Error";
+                                        toast.error(`Audio Blocked: ${msg}`);
                                     }
                                 }}
                                 className="w-full py-2 bg-orange-950/30 border border-orange-500/50 text-orange-200 rounded hover:bg-orange-900/50 transition-colors text-xs font-mono flex items-center justify-center gap-2"
