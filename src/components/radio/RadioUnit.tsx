@@ -24,7 +24,7 @@ const RadioUnitComponent: React.FC = () => {
   } = useRadioStore();
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 perspective-1000">
+    <div className="w-full max-w-7xl mx-auto p-2 md:p-4 perspective-1000">
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -180,12 +180,12 @@ const RadioUnitComponent: React.FC = () => {
         </div>
         
         {/* Tuning Dial Area */}
-        <div className="mt-8 relative">
-             <div className="mb-3 flex items-center justify-between relative px-2">
-                <span className="text-[8px] md:text-[10px] font-mono text-zinc-600 uppercase tracking-[0.2em]">FM STEREO TUNER</span>
+        <div className="mt-6 md:mt-8 relative">
+             <div className="mb-3 flex flex-col md:flex-row items-center justify-between relative px-2 gap-4 md:gap-0">
+                <span className="text-[8px] md:text-[10px] font-mono text-zinc-600 uppercase tracking-[0.2em] order-2 md:order-1">FM STEREO TUNER</span>
                 
                 {/* Compact Tactile Buttons - Integrated into Dial Frame */}
-                <div className="flex items-center gap-[1px] bg-zinc-950 p-0.5 rounded-md border border-zinc-700 shadow-xl absolute left-1/2 -translate-x-1/2 -top-3 scale-90 md:scale-100 transition-all z-30">
+                <div className="flex items-center gap-[1px] bg-zinc-950 p-0.5 rounded-md border border-zinc-700 shadow-xl relative md:absolute md:left-1/2 md:-translate-x-1/2 md:-top-3 scale-100 transition-all z-30 order-1 md:order-2">
                     <button 
                         type="button"
                         onClick={(e) => {
@@ -194,7 +194,7 @@ const RadioUnitComponent: React.FC = () => {
                             const prevIndex = (currentIndex - 1 + stations.length) % stations.length;
                             setStation(stations[prevIndex]);
                         }}
-                        className="px-4 py-1.5 rounded-l-sm bg-gradient-to-b from-zinc-800 to-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-orange-500 active:from-zinc-950 active:to-zinc-900 transition-all uppercase tracking-tighter border-r border-zinc-800"
+                        className="px-6 py-2 md:px-4 md:py-1.5 rounded-l-sm bg-gradient-to-b from-zinc-800 to-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-orange-500 active:from-zinc-950 active:to-zinc-900 transition-all uppercase tracking-tighter border-r border-zinc-800"
                         title="Previous Station"
                     >
                         PREV
@@ -207,14 +207,14 @@ const RadioUnitComponent: React.FC = () => {
                             const nextIndex = (currentIndex + 1) % stations.length;
                             setStation(stations[nextIndex]);
                         }}
-                        className="px-4 py-1.5 rounded-r-sm bg-gradient-to-b from-zinc-800 to-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-orange-500 active:from-zinc-950 active:to-zinc-900 transition-all uppercase tracking-tighter"
+                        className="px-6 py-2 md:px-4 md:py-1.5 rounded-r-sm bg-gradient-to-b from-zinc-800 to-zinc-900 text-[10px] font-bold text-zinc-500 hover:text-orange-500 active:from-zinc-950 active:to-zinc-900 transition-all uppercase tracking-tighter"
                         title="Next Station"
                     >
                         NEXT
                     </button>
                 </div>
 
-                <span className={`text-[8px] md:text-[10px] font-mono uppercase tracking-[0.2em] ${isPlaying ? "text-red-500 animate-pulse" : "text-zinc-800"}`}>STEREO</span>
+                <span className={`text-[8px] md:text-[10px] font-mono uppercase tracking-[0.2em] order-3 ${isPlaying ? "text-red-500 animate-pulse" : "text-zinc-800"}`}>STEREO</span>
              </div>
 
              <Tuner 

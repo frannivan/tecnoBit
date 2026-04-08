@@ -10,8 +10,8 @@ import { StartScreen } from './components/common/StartScreen';
 import { HelpGuide } from './components/common/HelpGuide';
 import { useRadioStore } from './store/useRadioStore';
 import { useDJStore } from './store/useDJStore';
-import { HelpCircle, AlertTriangle } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { HelpCircle, AlertTriangle, Music, Plus } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function App() {
   useAudioPlayer();
@@ -35,6 +35,7 @@ function App() {
   }, [isPlayingA, isPlayingB, pause]);
   
   const [showHelp, setShowHelp] = useState(false);
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
   // AUTOMATED AUDIO BLESSING (v1.7.0)
   const handleStart = async () => {
@@ -56,7 +57,6 @@ function App() {
     if (player1) {
         try {
             const originalMute = player1.muted;
-            const originalSrc = player1.src;
             
             player1.muted = true;
             // Play a real stream silently for 100ms
@@ -84,7 +84,7 @@ function App() {
 
   return (
     <MainLayout>
-      <div className="flex flex-col gap-12 md:gap-24 relative px-4 sm:px-6 lg:px-8 pb-32 max-w-7xl mx-auto w-full">
+      <div className="flex flex-col gap-12 md:gap-24 relative px-2 sm:px-6 lg:px-8 pb-32 max-w-full md:max-w-7xl mx-auto w-full">
         <AnimatePresence>
           {!hasInteracted && <StartScreen onStart={handleStart} />}
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
@@ -99,7 +99,7 @@ function App() {
         </div>
 
         {/* Sección 1: Radio & Library */}
-        <section className="">
+        <section className="landscape:hidden sm:landscape:hidden md:landscape:block">
             <div className="bg-zinc-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl space-y-12">
                 
                 {/* 1. Radio Unit */}
@@ -128,17 +128,68 @@ function App() {
         </section>
         
         {/* Sección 2: DJ Console */}
-        <section className="flex flex-col items-center">
+        <section className="flex flex-col items-center landscape:mt-0 sm:landscape:mt-0">
              <DJConsole />
         </section>
 
         <button 
             onClick={() => setShowHelp(true)}
-            className="fixed bottom-8 right-8 z-50 bg-zinc-900 p-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 hover:border-emerald-500 hover:text-emerald-500 transition-all group scale-90 hover:scale-100"
+            className="fixed bottom-8 right-8 z-50 bg-zinc-900 p-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 hover:border-emerald-500 hover:text-emerald-500 transition-all group scale-90 hover:scale-100 md:landscape:hidden"
             title="Help Guide"
         >
             <HelpCircle size={24} />
         </button>
+
+        {/* LANDSCAPE LIBRARY TOGGLE */}
+        <button 
+            onClick={() => setIsLibraryOpen(!isLibraryOpen)}
+            className="fixed left-4 top-1/2 -translate-y-1/2 z-[60] bg-orange-500 p-3 rounded-full shadow-2xl border border-white/20 hidden landscape:flex sm:landscape:flex md:landscape:hidden animate-pulse"
+            title="Open Master Crate"
+        >
+            <Music size={24} className="text-black" />
+        </button>
+
+        {/* LANDSCAPE LIBRARY DRAWER */}
+        <AnimatePresence>
+            {isLibraryOpen && (
+                <motion.div 
+                    initial={{ x: '-100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '-100%' }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                    className="fixed inset-y-0 left-0 w-[80vw] bg-zinc-950 z-[70] shadow-[30px_0_60px_rgba(0,0,0,0.8)] border-r border-white/10 p-4 flex flex-col md:hidden"
+                >
+                    <div className="flex justify-between items-center mb-4 px-2">
+                        <h3 className="text-xs font-black text-orange-500 uppercase tracking-widest">Master Crate</h3>
+                        <button onClick={() => setIsLibraryOpen(false)} className="p-2 text-zinc-500 hover:text-white">
+                            <Plus size={24} className="rotate-45" />
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-hidden rounded-2xl border border-white/5 bg-black/40">
+                         <DJPlaylist 
+                            selectedTrackId={selectedTrack?.id || null}
+                            onSelect={(track) => {
+                                setSelectedTrack(track);
+                                setIsLibraryOpen(false);
+                            }}
+                        />
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+
+        {/* DARK OVERLAY WHEN DRAWER OPEN */}
+        <AnimatePresence>
+            {isLibraryOpen && (
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setIsLibraryOpen(false)}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[65] md:hidden"
+                />
+            )}
+        </AnimatePresence>
       </div>
     </MainLayout>
   );

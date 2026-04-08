@@ -237,7 +237,7 @@ const DJConsoleComponent: React.FC = () => {
   return (
     <div className="flex flex-col items-center gap-4 py-2 w-full bg-[#030303] min-h-screen text-white/90 font-sans selection:bg-sky-500/30 overflow-hidden">
       
-      <div className="w-full max-w-[1400px] bg-[#0c0c0c] border border-white/5 p-1 px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
+      <div className="w-full max-w-[1440px] bg-[#0c0c0c] border-y md:border border-white/5 p-1 px-2 md:px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
           <div className="relative h-[80px] overflow-hidden group">
              <DJWaveform url={urlA} trackId={trackIdA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
              <div className="absolute top-2 left-6 text-[10px] font-black italic text-emerald-500/90 uppercase tracking-[0.5em] z-40">MASTER DECK A - {trackNameA}</div>

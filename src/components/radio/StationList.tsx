@@ -7,7 +7,7 @@ const StationListComponent: React.FC = () => {
     const { currentStation, setStation, isPlaying } = useRadioStore();
 
     return (
-        <div className="grid grid-rows-1 md:grid-rows-2 grid-flow-col gap-4 mt-4 md:mt-8 pb-4 overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-orange-500/20 scrollbar-track-transparent">
+        <div className="grid grid-cols-2 md:grid-rows-2 md:grid-flow-col gap-3 md:gap-4 mt-4 md:mt-8 pb-4 overflow-x-auto md:overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-orange-500/20 scrollbar-track-transparent">
             {stations.map((station) => {
                 const isActive = currentStation?.id === station.id;
                 return (
@@ -15,8 +15,8 @@ const StationListComponent: React.FC = () => {
                         key={station.id}
                         onClick={() => setStation(station)}
                         className={`
-                            flex-none w-64 md:w-96
-                            flex items-center gap-4 p-3 rounded-lg border text-left transition-all group snap-start overflow-hidden
+                            flex-none w-full md:w-96
+                            flex flex-col md:flex-row items-center gap-2 md:gap-4 p-2 md:p-3 rounded-lg border text-left transition-all group snap-start overflow-hidden
                             ${isActive 
                                 ? 'bg-orange-500/10 border-orange-500/50 shadow-[0_4_20px_rgba(249,115,22,0.1)]' 
                                 : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800'
@@ -25,7 +25,7 @@ const StationListComponent: React.FC = () => {
                     >
                         {/* Station Image */}
                         {station.imageUrl && (
-                            <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-md overflow-hidden border border-zinc-800">
+                            <div className="w-full aspect-square md:w-20 md:h-20 flex-shrink-0 rounded-md overflow-hidden border border-zinc-800">
                                 <img src={station.imageUrl} alt={station.name} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                             </div>
                         )}
