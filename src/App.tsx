@@ -10,7 +10,7 @@ import { StartScreen } from './components/common/StartScreen';
 import { HelpGuide } from './components/common/HelpGuide';
 import { useRadioStore } from './store/useRadioStore';
 import { useDJStore } from './store/useDJStore';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, AlertTriangle } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 
 function App() {
@@ -36,15 +36,50 @@ function App() {
   
   const [showHelp, setShowHelp] = useState(false);
 
-  const handleStart = () => {
+  // AUTOMATED AUDIO BLESSING (v1.7.0)
+  const handleStart = async () => {
     setHasInteracted(true);
     if (!hasInteracted) setShowHelp(true);
 
-    // SIMPLEST START POSSIBLE
-    Tone.start().then(() => {
-        Tone.context.resume();
-        console.log("Web Audio Engine: READY");
-    });
+    console.log("--- INITIALIZING MASTER AUDIO SESSION ---");
+
+    // 1. Start Tone.js
+    await Tone.start();
+    await Tone.context.resume();
+    
+    // 2. PROGRAMMATIC BLESSING
+    // We simulate what the user did: Play/Stop a real HTML5 Audio element.
+    // This "blesses" the browser's hardware session for Web Audio (Mixer).
+    const player1 = document.getElementById('global-audio-player-1') as HTMLAudioElement;
+    const player2 = document.getElementById('global-audio-player-2') as HTMLAudioElement;
+
+    if (player1) {
+        try {
+            const originalMute = player1.muted;
+            const originalSrc = player1.src;
+            
+            player1.muted = true;
+            // Play a real stream silently for 100ms
+            player1.play().then(() => {
+                setTimeout(() => {
+                    player1.pause();
+                    player1.muted = originalMute;
+                    console.log("Hardware Session: BLESSED via Player 1");
+                }, 100);
+            }).catch(e => console.warn("Player 1 blessing failed", e));
+        } catch (e) {
+            console.error("Blessing error", e);
+        }
+    }
+
+    if (player2) {
+        player2.muted = true;
+        player2.play().then(() => {
+            setTimeout(() => player2.pause(), 100);
+        }).catch(() => {});
+    }
+
+    console.log("Web Audio Engine: READY (State:", Tone.context.state, ")");
   };
 
   return (
@@ -55,15 +90,26 @@ function App() {
           {showHelp && <HelpGuide onClose={() => setShowHelp(false)} />}
         </AnimatePresence>
 
+        {/* MUTE SWITCH WARNING (FOR IPHONE) */}
+        <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-2xl flex items-center gap-4 text-orange-200 text-xs md:text-sm animate-pulse lg:hidden">
+            <AlertTriangle className="text-orange-500 shrink-0" size={20} />
+            <p>
+                <strong>iPhone User:</strong> Revisa que el interruptor físico lateral esté en modo <strong>Timbre (Ring)</strong>. Si está en silencio, el Mixer no se escuchará.
+            </p>
+        </div>
+
         {/* Sección 1: Radio & Library */}
-        <section className="mt-8">
+        <section className="">
             <div className="bg-zinc-950/40 p-6 md:p-10 rounded-[2.5rem] md:rounded-[4rem] border border-white/5 backdrop-blur-3xl shadow-2xl space-y-12">
                 
                 {/* 1. Radio Unit */}
                 <div className="space-y-6">
                     <RadioUnit />
                     <div className="relative pt-6 border-t border-white/5">
-                        <h3 className="text-[10px] uppercase font-mono text-zinc-400 mb-4 px-2 tracking-[0.3em] font-bold">Transmisiones Disponibles</h3>
+                        <div className="flex justify-between items-end mb-4 px-2">
+                             <h3 className="text-[10px] uppercase font-mono text-zinc-400 tracking-[0.3em] font-bold">Transmisiones Disponibles</h3>
+                             <span className="text-[8px] font-mono text-zinc-600 bg-white/5 px-2 py-1 rounded">ESTACIONES SELECCIONADAS</span>
+                        </div>
                         <StationList />
                     </div>
                 </div>
