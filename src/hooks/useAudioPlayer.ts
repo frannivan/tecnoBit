@@ -59,7 +59,19 @@ export const useAudioPlayer = () => {
         if (audio.id === `global-audio-player-${stateRef.current.activeDeck}` && !stateRef.current.nextTrackTriggered) {
             const currentSt = stateRef.current.currentStation;
             if (currentSt?.country === 'Playlist') {
-                pause();
+                // AUTO-ADVANCE LOGIC
+                const nextTrack = useDJStore.getState().getNextPlaylistTrack(currentSt.id);
+                if (nextTrack) {
+                    setStation({
+                        id: nextTrack.id,
+                        name: nextTrack.title,
+                        streamUrl: nextTrack.audioUrl || '',
+                        genre: nextTrack.artist || 'Library',
+                        country: 'Playlist'
+                    });
+                } else {
+                    pause();
+                }
             }
         }
     };

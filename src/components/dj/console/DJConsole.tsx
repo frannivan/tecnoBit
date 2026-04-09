@@ -3,11 +3,8 @@ import { DJDeck, ProfessionalFader } from './DJDeck';
 import { DJWaveform } from './DJWaveform';
 import { useDJAudio } from '../../../hooks/useDJAudio';
 import { type Track, useDJStore } from '../../../store/useDJStore';
-import { useRadioStore } from '../../../store/useRadioStore';
-import { getTrackBlob, saveTrackBlob } from '../../../utils/indexedDB';
-import { detectBPM } from '../../../utils/bpmDetector';
+import { getTrackBlob } from '../../../utils/indexedDB';
 import * as Tone from 'tone';
-import jsmediatags from 'jsmediatags';
 
 const VUMeter: React.FC<{ getLevel: () => number, isPlaying: boolean }> = ({ getLevel, isPlaying }) => {
   const [level, setLevel] = useState(-100);
@@ -61,13 +58,9 @@ const DJConsoleComponent: React.FC = () => {
   const playlist = useDJStore(state => state.playlist);
   const sharedCrate = useDJStore(state => state.sharedCrate);
   const history = useDJStore(state => state.history);
-  const setTrackBPM = useDJStore(state => state.setTrackBPM);
-  const hasInteracted = useRadioStore(state => state.hasInteracted);
 
   const audioA = useDJAudio(urlA, trackIdA, 'A');
   const audioB = useDJAudio(urlB, trackIdB, 'B');
-
-  const { addAnalyzingTrack, removeAnalyzingTrack } = useDJStore();
 
   const handlePowerOn = async () => {
       setIsPoweredOn(!isPoweredOn);
@@ -89,22 +82,35 @@ const DJConsoleComponent: React.FC = () => {
       }
   };
 
+  // Use refs to store current URLs to avoid dependency loops in callbacks
+  const urlARef = useRef(urlA);
+  const urlBRef = useRef(urlB);
+  useEffect(() => { urlARef.current = urlA; }, [urlA]);
+  useEffect(() => { urlBRef.current = urlB; }, [urlB]);
+
   const handleLoadA = useCallback(async (item: Track) => {
       const cachedBlob = await getTrackBlob(item.id);
       const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
       if (loadUrl) {
+          const oldUrl = urlARef.current;
+          if (oldUrl && oldUrl.startsWith('blob:')) URL.revokeObjectURL(oldUrl);
+          
           setUrlA(loadUrl);
           setTrackNameA(item.title);
           setTrackIdA(item.id);
           setFullTrackA(item);
           setPitchA(1.0);
+          // V2.6.0: DECODING MOVED ENTIRELY TO useDJAudio TO AVOID LAG
       }
-  }, []);
+  }, []); 
 
   const handleLoadB = useCallback(async (item: Track) => {
       const cachedBlob = await getTrackBlob(item.id);
       const loadUrl = cachedBlob ? URL.createObjectURL(cachedBlob) : item.audioUrl;
       if (loadUrl) {
+          const oldUrl = urlBRef.current;
+          if (oldUrl && oldUrl.startsWith('blob:')) URL.revokeObjectURL(oldUrl);
+          
           setUrlB(loadUrl);
           setTrackNameB(item.title);
           setTrackIdB(item.id);
@@ -116,11 +122,11 @@ const DJConsoleComponent: React.FC = () => {
   useEffect(() => {
     const loadA = (e: any) => handleLoadA(e.detail);
     const loadB = (e: any) => handleLoadB(e.detail);
-    window.addEventListener('dj-load-deck-a', loadA as any);
-    window.addEventListener('dj-load-deck-b', loadB as any);
+    window.addEventListener('dj-load-deck-a', loadA);
+    window.addEventListener('dj-load-deck-b', loadB);
     return () => {
-        window.removeEventListener('dj-load-deck-a', loadA as any);
-        window.removeEventListener('dj-load-deck-b', loadB as any);
+      window.removeEventListener('dj-load-deck-a', loadA);
+      window.removeEventListener('dj-load-deck-b', loadB);
     };
   }, [handleLoadA, handleLoadB]);
 
@@ -128,63 +134,6 @@ const DJConsoleComponent: React.FC = () => {
       const all = [...playlist, ...sharedCrate, ...history];
       return all.find(t => t.audioUrl === u || t.title === n)?.bpm || 128;
   };
-
-  const analyzeTrack = async (track: Track) => {
-      const currentAnalyzing = useDJStore.getState().analyzingTrackIds;
-      if (track.bpm || currentAnalyzing.has(track.id)) return;
-      
-      addAnalyzingTrack(track.id);
-      try {
-          const cachedBlob = await getTrackBlob(track.id);
-          let blob = cachedBlob;
-          if (!blob && track.audioUrl) {
-              const response = await fetch(track.audioUrl);
-              blob = await response.blob();
-              await saveTrackBlob({ id: track.id, blob, name: track.title, type: blob.type });
-          }
-          if (blob) {
-              const id3BPM = await new Promise<number | null>((resolve) => {
-                  jsmediatags.read(blob as Blob, {
-                      onSuccess: (tag) => {
-                          const bpmTag = tag.tags.TBPM || (tag.tags as any).bpm;
-                          if (bpmTag && bpmTag.data) resolve(parseFloat(bpmTag.data));
-                          else resolve(null);
-                      },
-                      onError: () => resolve(null)
-                   });
-              });
-              if (id3BPM) {
-                  setTrackBPM(track.id, id3BPM);
-              } else {
-                  const arrayBuffer = await blob.arrayBuffer();
-                  const audioBuffer = await Tone.context.decodeAudioData(arrayBuffer);
-                  const bpm = await detectBPM(audioBuffer);
-                  setTrackBPM(track.id, bpm);
-              }
-          }
-      } catch (e: any) {
-          console.warn(`Analysis failed for ${track.title}:`, e.name || "Error", e.message || "");
-      } finally {
-          removeAnalyzingTrack(track.id);
-      }
-  };
-
-  useEffect(() => {
-    if (!hasInteracted) return;
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) return;
-
-    const allTracks = [...playlist, ...sharedCrate];
-    const scan = async () => {
-        for (const track of allTracks) {
-            if (!track.bpm) {
-                await analyzeTrack(track);
-                await new Promise(r => setTimeout(r, 500));
-            }
-        }
-    };
-    scan();
-  }, [playlist.length, sharedCrate.length, hasInteracted]);
 
   const handleSyncA = () => {
     const bpmA = findTrackBPM(urlA, trackNameA);
@@ -235,91 +184,99 @@ const DJConsoleComponent: React.FC = () => {
   }, [audioA.isPlaying, audioB.isPlaying, volA, volB, handleLoadA, handleLoadB, isPoweredOn]);
 
   return (
-    <div className="flex flex-col items-center gap-4 py-2 w-full bg-[#030303] min-h-screen text-white/90 font-sans selection:bg-sky-500/30 overflow-hidden">
+    <div className="flex flex-col items-center gap-1 md:gap-2 py-0 md:py-2 w-full bg-[#030303] min-h-screen text-white/90 font-sans selection:bg-sky-500/30 overflow-hidden">
       
-      <div className="w-full max-w-[1440px] bg-[#0c0c0c] border-y md:border border-white/5 p-1 px-2 md:px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col bg-gradient-to-b from-transparent via-white/[0.02] to-transparent">
-          <div className="relative h-[80px] overflow-hidden group">
-             <DJWaveform url={urlA} trackId={trackIdA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
-             <div className="absolute top-2 left-6 text-[10px] font-black italic text-emerald-500/90 uppercase tracking-[0.5em] z-40">MASTER DECK A - {trackNameA}</div>
-          </div>
-          <div className="h-0.5 bg-white/5 w-full relative z-50"></div>
-          <div className="relative h-[80px] overflow-hidden group">
-             <DJWaveform url={urlB} trackId={trackIdB} color="#f97316" resetTrigger={audioB.cueCount} getTimeInfo={audioB.getTimeInfo} />
-             <div className="absolute bottom-2 left-6 text-[10px] font-black italic text-orange-500/90 uppercase tracking-[0.5em] z-40">MASTER DECK B - {trackNameB}</div>
-          </div>
-          <div className="absolute inset-y-0 left-1/2 w-[2px] bg-white pointer-events-none z-[100] shadow-[0_0_15px_#fff]">
-              <div className="absolute top-0 -left-1.5 w-4 h-4 bg-white rotate-45" />
-              <div className="absolute bottom-0 -left-1.5 w-4 h-4 bg-white rotate-45" />
+      {/* Top Waveforms - Optimized height for Landscape (iPhone 12 Fix) */}
+      <div className="w-full max-w-[1440px] bg-[#0c0c0c] border-b border-white/5 p-1 px-2 md:px-4 shadow-[0_30px_60px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col shrink-0">
+          <div className="flex flex-col w-full gap-0.5 md:gap-2 relative">
+              <div className="relative h-[28px] md:h-[100px] overflow-hidden group rounded-lg border border-white/5 bg-black">
+                 <DJWaveform url={urlA} trackId={trackIdA} color="#10b981" resetTrigger={audioA.cueCount} getTimeInfo={audioA.getTimeInfo} />
+                 <div className="absolute top-1 left-2 text-[6px] md:text-[10px] font-black italic text-emerald-500/90 uppercase tracking-[0.3em] z-40 bg-black/60 px-2 py-0.5 rounded backdrop-blur-sm">DECK A</div>
+              </div>
+              <div className="relative h-[28px] md:h-[100px] overflow-hidden group rounded-lg border border-white/5 bg-black">
+                 <DJWaveform url={urlB} trackId={trackIdB} color="#f97316" resetTrigger={audioB.cueCount} getTimeInfo={audioB.getTimeInfo} />
+                 <div className="absolute top-1 left-2 text-[6px] md:text-[10px] font-black italic text-orange-500/90 uppercase tracking-[0.3em] z-40 bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm">DECK B</div>
+              </div>
           </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:flex-nowrap gap-4 xl:gap-8 justify-center items-center lg:items-end w-full relative z-10 px-4 mt-2">
-        <DJDeck 
-            name="A" 
-            crossfadeValue={crossfade} 
-            audioController={audioA} 
-            themeColor="#10b981" 
-            externalVolume={volA} 
-            url={urlA} 
-            trackName={trackNameA} 
-            isLoaded={audioA.isBufferLoaded} 
-            bpm={findTrackBPM(urlA, trackNameA)} 
-            track={fullTrackA} 
-            pitch={pitchA} 
-            setPitch={setPitchA} 
-            onSync={handleSyncA} 
-            beatOffset={audioA.beatOffset} 
-        />
+      <div className="flex flex-col landscape:flex-row items-center md:items-stretch landscape:items-start justify-center gap-2 max-md:landscape:gap-0 md:gap-4 xl:gap-8 w-full max-w-[1440px] px-1 md:px-4 mt-0.5 md:mt-1 flex-1 overflow-y-auto landscape:overflow-visible">
+        <div className="w-full landscape:w-[42%] flex justify-center max-md:landscape:scale-[0.8] origin-top">
+            <DJDeck 
+                name="A" 
+                crossfadeValue={crossfade} 
+                audioController={audioA} 
+                themeColor="#10b981" 
+                externalVolume={volA} 
+                url={urlA} 
+                trackName={trackNameA} 
+                isLoaded={audioA.isBufferLoaded} 
+                bpm={findTrackBPM(urlA, trackNameA)} 
+                track={fullTrackA} 
+                pitch={pitchA} 
+                setPitch={setPitchA} 
+                onSync={handleSyncA} 
+                beatOffset={audioA.beatOffset} 
+            />
+        </div>
 
-        <div className="flex flex-col items-center gap-4 bg-zinc-950 border-x-4 border-zinc-900 px-3 md:px-6 py-6 rounded-3xl shadow-[0_45px_90px_rgba(0,0,0,0.9)] min-w-[240px] md:min-w-[260px]">
-          <div className="flex flex-col items-center gap-2 mb-2 p-3 bg-black/40 rounded-2xl border border-white/5 w-full shadow-inner">
-             <button 
-                onClick={handlePowerOn}
-                className={`w-14 h-14 rounded-full border-4 flex items-center justify-center transition-all duration-500 shadow-2xl active:scale-95 ${isPoweredOn ? 'bg-emerald-500 border-white/30 shadow-[0_0_35px_#10b981] cursor-default' : 'bg-red-900 border-red-700 hover:bg-red-600 hover:border-red-500 cursor-pointer animate-pulse'}`}
-             >
-                <div className={`w-4 h-4 rounded-full ${isPoweredOn ? 'bg-white shadow-[0_0_5px_white]' : 'bg-red-400 opacity-50'}`} />
-             </button>
-             <div className="flex flex-col items-center">
-                 <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${isPoweredOn ? 'text-emerald-500 font-bold' : 'text-zinc-600'}`}>System {isPoweredOn ? 'ON' : 'OFF'}</span>
-                 <span className="text-[7px] font-bold text-zinc-800 uppercase tracking-widest mt-0.5">Analog Hybrid Engine</span>
+        {/* CENTER MIXER SECTION - Scaled for iPhone 12 Landscape */}
+        <div className="flex flex-col items-center gap-1 max-md:landscape:gap-0.5 md:gap-4 bg-zinc-950 border-x-4 border-zinc-900 px-1 md:px-4 py-1.5 md:py-6 rounded-3xl shadow-[0_45px_90px_rgba(0,0,0,0.9)] w-full landscape:w-[16%] min-w-[160px] shrink-0 max-md:landscape:scale-[0.78] max-md:landscape:-mt-4 origin-top">
+          
+          <button 
+             onClick={handlePowerOn}
+             className={`mb-1 group flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-300 w-full justify-center ${isPoweredOn ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500' : 'bg-red-500/10 border-red-500/50 text-red-500 animate-pulse'}`}
+          >
+             <div className={`w-1.5 h-1.5 rounded-full ${isPoweredOn ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-red-500'}`}></div>
+             <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest">{isPoweredOn ? 'Engine On' : 'Start Engine'}</span>
+          </button>
+
+          <div className="w-full bg-black/60 border border-white/5 rounded-xl p-1.5 flex flex-col items-center justify-center shadow-inner">
+             <div className="text-[6px] md:text-[8px] font-black text-white/30 uppercase tracking-[0.4em] mb-0.5">Global BPM</div>
+             <div className="flex items-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></div>
+                <div className="text-xl md:text-2xl font-black italic text-white leading-none tracking-tighter">
+                   {((findTrackBPM(urlA, trackNameA) * pitchA + findTrackBPM(urlB, trackNameB) * pitchB) / 2).toFixed(1)}
+                </div>
              </div>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-8 h-64">
-             <div className="flex flex-col items-center h-full gap-6">
-                <div className="h-10" />
+          <div className="flex items-center gap-2 h-40 md:h-64">
+             <div className="flex flex-col items-center h-full gap-1">
                 <ProfessionalFader label="CH 1" value={volA} onChange={setVolA} min={0} max={100} color="#10b981" />
              </div>
-             <div className="flex gap-2 pt-16 pb-6 h-full border-x border-white/5 px-2 md:px-3 bg-[#050505] rounded-xl shadow-inner">
+             <div className="flex gap-0.5 pt-8 md:pt-12 pb-2 md:pb-4 h-full border-x border-white/5 px-0.5 md:px-2 bg-[#050505] rounded-lg shadow-inner">
                 <VUMeter getLevel={audioA.getLevel} isPlaying={audioA.isPlaying} />
                 <VUMeter getLevel={audioB.getLevel} isPlaying={audioB.isPlaying} />
              </div>
-             <div className="flex flex-col items-center h-full gap-6">
-                <div className="h-10" />
+             <div className="flex flex-col items-center h-full gap-1">
                 <ProfessionalFader label="CH 2" value={volB} onChange={setVolB} min={0} max={100} color="#f97316" />
              </div>
           </div>
-          <div className="pt-2 w-full flex justify-center">
-             <ProfessionalFader label="X-FADE" value={crossfade * 100} onChange={(v) => setCrossfade(v/100)} min={0} max={100} isHorizontal color="#ffffff" />
+
+          <div className="w-full flex justify-center mt-1 md:mt-2">
+             <ProfessionalFader label="X-FADER" value={crossfade * 100} onChange={(v) => setCrossfade(v/100)} min={0} max={100} isHorizontal color="#ffffff" />
           </div>
         </div>
 
-        <DJDeck 
-            name="B" 
-            crossfadeValue={crossfade} 
-            audioController={audioB} 
-            themeColor="#f97316" 
-            externalVolume={volB} 
-            url={urlB} 
-            trackName={trackNameB} 
-            isLoaded={audioB.isBufferLoaded} 
-            bpm={findTrackBPM(urlB, trackNameB)} 
-            track={fullTrackB} 
-            pitch={pitchB} 
-            setPitch={setPitchB} 
-            onSync={handleSyncB} 
-            beatOffset={audioB.beatOffset} 
-        />
+        <div className="w-full landscape:w-[42%] flex justify-center max-md:landscape:scale-[0.8] origin-top">
+            <DJDeck 
+                name="B" 
+                crossfadeValue={crossfade} 
+                audioController={audioB} 
+                themeColor="#f97316" 
+                externalVolume={volB} 
+                url={urlB} 
+                trackName={trackNameB} 
+                isLoaded={audioB.isBufferLoaded} 
+                bpm={findTrackBPM(urlB, trackNameB)} 
+                track={fullTrackB} 
+                pitch={pitchB} 
+                setPitch={setPitchB} 
+                onSync={handleSyncB} 
+                beatOffset={audioB.beatOffset} 
+            />
+        </div>
       </div>
     </div>
   );

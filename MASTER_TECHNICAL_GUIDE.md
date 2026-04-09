@@ -21,7 +21,7 @@ Esta guía contiene la arquitectura completa, configuraciones de red, seguridad 
 
 | Aplicación | Tipo | Tecnología | URL / Acceso | Directorio Root | Servicio Systemd |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **TecnoBit** | Frontend | React + Vite | `https://tecnobit.club/` | `/var/www/tecno` | N/A (Estático) |
+| **TecnoBit** | Frontend | React + Vite | `https://tecnobit.club/` | `/var/www/tecnobit` | N/A (Estático) |
 | **CasaVida** | Fullstack | Java 17 + Angular | `http://IP/casavida/` | `/var/www/casavida` | `casavida.service` |
 | **Barbershop** | Fullstack | Java 17 + Static | `http://IP:8085` | `/var/www/barbershop` | `barbershop.service` |
 | **LoteMaster** | Backend | Java (H2 DB) | Puerto 8085 (Interno) | `/var/www/lotemaster` | `lotemaster.service` |
@@ -86,7 +86,7 @@ El servidor actúa como un "Policía de Tráfico" inteligente:
 1. En tu carpeta local: `npm run build`
 2. Subir archivos: 
    ```bash
-   scp -i tu-llave.key -r dist/* ubuntu@143.47.101.209:/var/www/tecno/
+   scp -i tu-llave.key -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/
    ```
 
 ### Para CasaVida (Backend)

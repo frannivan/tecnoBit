@@ -10,7 +10,7 @@ Este documento describe la configuración técnica y los pasos de despliegue par
 ## Estructura de Rutas
 La aplicación está configurada para funcionar en un subdirectorio para convivir con otras aplicaciones en el mismo servidor:
 - **URL Pública**: [http://tecnobit.club/](http://tecnobit.club/)
-- **Directorio Raíz Web**: `/var/www/tecno` (Será mapeado a la raíz en Nginx)
+- **Directorio Raíz Web**: `/var/www/tecnobit` (Será mapeado a la raíz en Nginx)
 
 ## Cockpit y Servicios
 Es importante entender que TecnoBit es una **Aplicación Frontend Estática** (HTML/React). A diferencia de CasaVida (que es un Backend de Java), TecnoBit no corre como un proceso independiente en el sistema, sino que es servida directamente por Nginx. Por esta razón:
@@ -63,7 +63,7 @@ He confirmado con `curl` desde fuera que el servidor entrega el título `<title>
 
 2. **Subir archivos al servidor**:
    ```bash
-   scp -i ~/Downloads/ssh-key-2026-01-09.key -r dist/* ubuntu@143.47.101.209:/var/www/tecno/
+   scp -i ~/Downloads/ssh-key-2026-01-09.key -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/
    ```
 
 3. **Reiniciar Nginx (si hay cambios en config)**:
@@ -73,4 +73,4 @@ He confirmado con `curl` desde fuera que el servidor entrega el título `<title>
 
 ## Notas Importantes
 - **Audio**: Las rutas de los archivos de audio en el `useDJStore.ts` deben ser relativas (sin `/` inicial) para que funcionen correctamente tanto en local como en el subdirectorio del servidor.
-- **Persistencia**: Se ha incrementado la versión del storage (`dj-storage-v4`) para asegurar que los clientes reciban las rutas corregidas al actualizar.
+- **Persistencia**: Se ha incrementado la versión del storage (`dj-storage-v5`) para asegurar que los clientes reciban las rutas corregidas al actualizar.

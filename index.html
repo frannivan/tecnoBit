@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>TecnoBit - DJ & Radio Experience</title>
     
     <!-- Primary Meta Tags -->
@@ -30,6 +30,15 @@
         color: #ffffff;
       }
     </style>
+    <script>
+      // Prevent pinch-zoom gestures that crash iOS Safari on heavy canvas apps
+      document.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) e.preventDefault();
+      }, { passive: false });
+      document.addEventListener('gesturestart', (e) => {
+        e.preventDefault();
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

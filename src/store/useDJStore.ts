@@ -30,7 +30,7 @@ interface DJState {
   activeTrackId: string | null;
   isLoadingShared: boolean;
   analyzingTrackIds: Set<string>;
-  audioData: Record<string, { rms: number[], duration: number }>;
+  hdPeaks: Record<string, { rms: number[], duration: number }>;
   isPlayingA: boolean;
   isPlayingB: boolean;
   selectedTrack: Track | null;
@@ -46,6 +46,7 @@ interface DJState {
   removeFromHistory: (id: string) => void;
   clearHistory: () => void;
   reorderPlaylist: (newOrder: Track[]) => void;
+  getNextPlaylistTrack: (currentTrackId: string) => Track | null;
   playNextTrack: () => Track | null; // Returns next track or null if none
   setCurrentPlaylistIndex: (index: number) => void;
   setActiveTrackId: (id: string | null) => void;
@@ -79,7 +80,7 @@ export const useDJStore = create<DJState>()(
       isLoadingShared: false,
       analyzingTrackIds: new Set<string>(),
       history: [],
-      audioData: {},
+      hdPeaks: {},
       isPlayingA: false,
       isPlayingB: false,
       selectedTrack: null,
@@ -87,7 +88,7 @@ export const useDJStore = create<DJState>()(
       setSelectedTrack: (track) => set({ selectedTrack: track }),
 
       setAudioData: (trackId, data) => set(state => ({
-        audioData: { ...state.audioData, [trackId]: data }
+        hdPeaks: { ...state.hdPeaks, [trackId]: data }
       })),
 
       setIsPlayingA: (playing) => set({ isPlayingA: playing }),
@@ -149,6 +150,19 @@ export const useDJStore = create<DJState>()(
       reorderPlaylist: (newOrder) => set({ playlist: newOrder }),
 
       setCurrentPlaylistIndex: (index) => set({ currentPlaylistIndex: index }),
+      
+      getNextPlaylistTrack: (currentTrackId: string) => {
+        const state = get();
+        // Match the sorting logic used in the UI
+        const allTracks = [...state.playlist, ...state.sharedCrate]
+          .sort((a, b) => b.timestamp - a.timestamp);
+        
+        const currentIndex = allTracks.findIndex(t => t.id === currentTrackId);
+        if (currentIndex !== -1 && currentIndex < allTracks.length - 1) {
+          return allTracks[currentIndex + 1];
+        }
+        return null;
+      },
       
       playNextTrack: () => {
         const state = get();
@@ -532,12 +546,11 @@ export const useDJStore = create<DJState>()(
       }
     }),
     {
-      name: 'dj-storage-v5', // localStorage key
+      name: 'dj-storage-v7', // localStorage key - Version bump for TRUE-THIN peaks cache invalidation
       partialize: (state) => ({ 
         playlist: state.playlist,
         currentPlaylistIndex: state.currentPlaylistIndex,
-        history: state.history,
-        audioData: state.audioData
+        history: state.history
       }),
     }
   )

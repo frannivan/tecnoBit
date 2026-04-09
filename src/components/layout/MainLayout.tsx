@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useWakeLock } from '../../hooks/useWakeLock';
-import { DebugConsole } from '../common/DebugConsole';
 import { Toaster } from 'react-hot-toast';
 
 interface Props {
@@ -27,14 +26,13 @@ export const MainLayout: React.FC<Props> = ({ children }) => {
                         <h1 className="text-xl font-bold tracking-widest text-zinc-100">tecno<span className="text-orange-500">Bit</span></h1>
                     </div>
                 </div>
-                <div className="text-[10px] uppercase font-mono text-zinc-500 opacity-50">v1.5.69 (PRODUCTION) // FINAL_CLEANUP</div>
+                <span className="text-[7px] md:text-[9px] font-mono text-zinc-600 border border-white/5 px-2 py-0.5 rounded tracking-widest not-italic group-hover:border-emerald-500/30 transition-colors uppercase">v2.3.0 (GOD-MODE)</span>
             </header>
             
             <main className="flex-1 p-4 md:p-8 flex flex-col gap-8">
                 <Toaster position="bottom-right" toastOptions={{ style: { background: '#18181b', color: '#fff', border: '1px solid #27272a' } }} />
                 {children}
             </main>
-            <DebugConsole />
             
             <footer className="p-4 text-center text-xs text-zinc-600 font-mono border-t border-white/5">
                 ENGINEERED FOR AUDIO PURISTS

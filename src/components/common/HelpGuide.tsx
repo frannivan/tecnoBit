@@ -84,7 +84,7 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                              <button
                                  onClick={async () => {
                                      try {
-                                         console.log("--- START AUDIO DIAGNOSTIC v1.5.69 ---");
+                                         console.log("--- START AUDIO DIAGNOSTIC v1.6.0 ---");
                                          
                                          // Step 1: TONE.JS
                                          console.log("Step: 1. Initializing Tone.js...");
@@ -98,7 +98,7 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                                          osc.start().stop("+1");
                                          console.log("Tone.js: BEEP SENT (1000Hz)");
  
-                                         toast.success("DIAGNÓSTICO ENVIADO: Si no oyes nada, revisa el interruptor físico de silencio de tu iPhone.");
+                                         toast.success("DIAGNOSTIC SENT: If you hear nothing, please check the physical mute switch on your iPhone.");
                                          console.log("--- DIAGNOSTIC COMPLETE ---");
                                      } catch (e: any) {
                                          console.error(`DIAGNOSTIC FAILED:`, e);
@@ -114,7 +114,7 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose }) => {
                                 Current Context State: <span className="text-orange-400 font-mono font-bold uppercase">{Tone.context.state}</span>
                              </p>
                              <p className="text-[10px] text-zinc-500 mt-1">
-                                Si el Mixer no se escucha pero la Radio sí, clica arriba para forzar el reinicio del motor Web Audio.
+                                If the Mixer has no sound but the Radio does, click above to force a Web Audio engine restart.
                              </p>
                         </div>
                     </div>

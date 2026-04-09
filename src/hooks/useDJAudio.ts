@@ -59,46 +59,50 @@ export const useDJAudio = (url: string, trackId: string | null = null, name: 'A'
     if (Tone.context.state !== 'running') Tone.start();
     durationRef.current = player.buffer.duration;
     
-    // SCAN FOR BEAT OFFSET (TRANSIENT DETECTION)
+    // 1. SCAN FOR BEAT OFFSET (TRANSIENT DETECTION)
     const sampleRate = player.buffer.sampleRate;
     const buffer = player.buffer.getChannelData(0); 
-    const scanWindow = Math.min(buffer.length, sampleRate * 4); // Scan first 4 seconds
-    let maxVal = 0;
-    let maxIdx = 0;
-    // Look for the first strong peak, not just the absolute max
+    const scanWindow = Math.min(buffer.length, sampleRate * 4);
+    let maxVal = 0; let maxIdx = 0;
     const threshold = 0.5; 
     for (let i = 0; i < scanWindow; i++) {
         const absVal = Math.abs(buffer[i]);
-        if (absVal > threshold) { 
-            maxIdx = i; 
-            break; 
-        }
+        if (absVal > threshold) { maxIdx = i; break; }
         if (absVal > maxVal) { maxVal = absVal; maxIdx = i; }
     }
-    beatOffsetRef.current = Math.max(0, (maxIdx / sampleRate) - 0.005); // Tighter offset
+    beatOffsetRef.current = Math.max(0, (maxIdx / sampleRate) - 0.005);
 
-    // === [EXPERIMENTAL SINGLE-LOAD OPTIMIZATION] ===
+    // 2. STABLE PEAK ANALYSIS (Optimized with Stride=10 for 10x speed)
     const dur = player.buffer.duration;
-    const targetPoints = 500; // Standard 500 points for mobile waves
+    const targetPoints = 10000; 
     const blockSize = Math.floor(buffer.length / targetPoints);
-    const rmsArray = new Float32Array(targetPoints);
+    const peaksArray = new Float32Array(targetPoints);
+    const stride = 10;
+    
     for (let i = 0; i < targetPoints; i++) {
-        let sumSq = 0;
-        for (let j = 0; j < blockSize; j++) {
-            const val = buffer[i * blockSize + j];
-            sumSq += val * val;
+        let maxLocal = 0;
+        const start = i * blockSize;
+        for (let j = 0; j < blockSize; j += stride) {
+            const val = Math.abs(buffer[start + j] || 0);
+            if (val > maxLocal) maxLocal = val;
         }
-        rmsArray[i] = Math.sqrt(sumSq / blockSize);
+        peaksArray[i] = maxLocal;
     }
     
-    const visualData = { rms: Array.from(rmsArray), duration: dur };
-    setAudioData({ rms: rmsArray, duration: dur });
+    // Stable 99th percentile normalization
+    const sortedPeaks = [...peaksArray].sort((a, b) => a - b);
+    const p99Index = Math.floor(targetPoints * 0.99);
+    const p99Peak = sortedPeaks[p99Index] || 0.01;
+    const multiplier = 1.0 / p99Peak;
     
-    // SHARED STORE FOR PERSISTENCE
+    for (let i = 0; i < targetPoints; i++) { 
+        peaksArray[i] = Math.min(1.2, peaksArray[i] * multiplier); 
+    }
+    
+    setAudioData({ rms: peaksArray, duration: dur });
     if (trackId) {
-        useDJStore.getState().setAudioData(trackId, { rms: visualData.rms, duration: dur });
+        useDJStore.getState().setAudioData(trackId, { rms: Array.from(peaksArray), duration: dur });
     }
-    // ===============================================
 
     setIsBufferLoaded(true);
   }, [trackId]);
