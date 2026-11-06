@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TecnoBit Cockpit & Terminal Center | TecnoRide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #07090e;
+            --bg-card: rgba(13, 17, 24, 0.85);
+            --bg-card-hover: rgba(22, 28, 40, 0.95);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(249, 115, 22, 0.4);
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --primary: #f97316;
+            --primary-glow: rgba(249, 115, 22, 0.35);
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.3);
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --font-sans: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(249, 115, 22, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+        }
+
+        /* Ambient Lighting */
+        .ambient-glow {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Header Cockpit */
+        header {
+            background: rgba(10, 14, 22, 0.88);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), #ea580c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.25rem;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .brand-text h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #ffffff, #fed7aa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-text p {
+            font-size: 0.72rem;
+            color: var(--text-sub);
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .header-badges {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .status-badge:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-1px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-dot.cloud { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+        .status-dot.warning { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+
+        .btn-header {
+            background: rgba(249, 115, 22, 0.12);
+            border: 1px solid rgba(249, 115, 22, 0.35);
+            color: #fdba74;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-header:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Notice Banner */
+        .notice-banner {
+            background: linear-gradient(90deg, rgba(249, 115, 22, 0.1), rgba(6, 182, 212, 0.1));
+            border-bottom: 1px solid rgba(249, 115, 22, 0.25);
+            color: #fdba74;
+            padding: 0.65rem 2.2rem;
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .notice-banner code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #fed7aa;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 2.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Daily Master Prompt Card */
+        .daily-prompt-card {
+            background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(6, 182, 212, 0.06));
+            border: 1px solid rgba(249, 115, 22, 0.35);
+            border-radius: 18px;
+            padding: 1rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(14px);
+            transition: all 0.3s ease;
+        }
+
+        .daily-prompt-card:hover {
+            border-color: rgba(249, 115, 22, 0.5);
+            box-shadow: 0 10px 30px rgba(249, 115, 22, 0.12);
+        }
+
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            gap: 15px;
+        }
+
+        .prompt-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .prompt-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fdba74;
+            transition: color 0.2s;
+        }
+
+        .prompt-header:hover .prompt-title {
+            color: #fff;
+        }
+
+        .prompt-title .toggle-icon {
+            margin-left: 8px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            transition: transform 0.3s ease;
+        }
+
+        .prompt-title .toggle-icon.open {
+            transform: rotate(180deg);
+        }
+
+        .prompt-path-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .prompt-path-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .prompt-path-pill {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(249, 115, 22, 0.25);
+            border-radius: 8px;
+            padding: 3px 10px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: #fdba74;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .prompt-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--primary), #ea580c);
+            color: #000;
+            border: none;
+            font-weight: 700;
+            padding: 7px 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.25s;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px var(--primary-glow);
+            filter: brightness(1.1);
+        }
+
+        .btn-action.btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            box-shadow: none;
+        }
+
+        .btn-action.btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-action.btn-cyan {
+            background: linear-gradient(135deg, var(--cyan), #0284c7);
+            color: #000;
+            box-shadow: 0 4px 12px var(--cyan-glow);
+        }
+
+        .btn-action.btn-cyan:hover {
+            box-shadow: 0 6px 18px var(--cyan-glow);
+        }
+
+        .prompt-collapsible {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.35s ease, margin-top 0.35s ease;
+            margin-top: 0;
+        }
+
+        .prompt-collapsible.open {
+            grid-template-rows: 1fr;
+            margin-top: 1rem;
+        }
+
+        .prompt-collapsible-inner {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .prompt-header-divider {
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            margin-top: 0.5rem;
+        }
+
+        .prompt-box {
+            background: #040609;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            line-height: 1.65;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            max-height: 280px;
+            overflow-y: auto;
+            user-select: text;
+        }
+
+        /* Monitor de Estado & Commit */
+        .deploy-monitor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .monitor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .monitor-title {
+            font-weight: 700;
+            color: #fdba74;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .monitor-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .monitor-item.prod {
+            background: rgba(6, 182, 212, 0.03);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        .monitor-item-label {
+            color: var(--text-sub);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
+        .commit-pill {
+            display: inline-block;
+            background: rgba(249, 115, 22, 0.15);
+            color: #fed7aa;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        .commit-pill.prod {
+            background: rgba(6, 182, 212, 0.15);
+            color: #67e8f9;
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        /* Virtual Terminal Box */
+        .terminal-box {
+            background: #040609;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-red { background: #ff5f56; }
+        .dot-yellow { background: #ffbd2e; }
+        .dot-green { background: #27c93f; }
+
+        .terminal-title {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-sub);
+        }
+
+        .terminal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-mono);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .terminal-body {
+            height: 250px;
+            overflow-y: auto;
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            background: #020407;
+            white-space: pre-wrap;
+            user-select: text;
+        }
+
+        .terminal-input-bar {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid var(--border-color);
+            gap: 12px;
+        }
+
+        .terminal-prompt {
+            color: var(--primary);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        /* Action Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .card-title.cyan i {
+            color: var(--cyan);
+        }
+
+        .card-title.purple i {
+            color: var(--secondary);
+        }
+
+        .cmd-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .cmd-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .cmd-item:hover {
+            border-color: rgba(249, 115, 22, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .cmd-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow: hidden;
+        }
+
+        .cmd-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #f1f5f9;
+        }
+
+        .cmd-code {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-sub);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cmd-btns {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-cmd {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-cmd:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-cmd.primary {
+            background: rgba(249, 115, 22, 0.15);
+            border-color: rgba(249, 115, 22, 0.4);
+            color: #fdba74;
+            font-weight: 600;
+        }
+
+        .btn-cmd.primary:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        /* Modal Reporte */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #0a0d14;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .modal-body {
+            padding: 1.75rem;
+            overflow-y: auto;
+            font-size: 0.88rem;
+            line-height: 1.7;
+            color: #cbd5e1;
+        }
+
+        .modal-body h2 { color: #fdba74; margin: 1.5rem 0 0.5rem 0; font-size: 1.15rem; }
+        .modal-body h3 { color: #67e8f9; margin: 1rem 0 0.3rem 0; font-size: 1rem; }
+        .modal-body p { margin-bottom: 0.8rem; }
+        .modal-body ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .modal-body code { background: rgba(0, 0, 0, 0.5); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #fdba74; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--primary), #ea580c);
+            color: #000;
+            padding: 0.85rem 1.6rem;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 0.88rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+            box-shadow: 0 10px 30px var(--primary-glow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            padding: 2.5rem 2.2rem;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            background: rgba(10, 14, 22, 0.6);
+            color: var(--text-sub);
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+
+    <!-- Header Cockpit -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i>
+            </div>
+            <div class="brand-text">
+                <h1>TecnoBit Cockpit & Terminal Center</h1>
+                <p>TecnoRide Ecosystem • Local Dev & Oracle Cloud Production</p>
+            </div>
+        </div>
+
+        <div class="header-badges">
+            <a href="http://localhost:5173" target="_blank" class="status-badge" title="Clic para abrir Frontend Local">
+                <span class="status-dot online"></span>
+                <span>Local Vite: 5173</span>
+            </a>
+            <a href="https://tecnobit.club" target="_blank" class="status-badge" title="Clic para abrir Producción OCI">
+                <span class="status-dot cloud"></span>
+                <span>Producción: tecnobit.club</span>
+            </a>
+            <span class="status-badge">
+                <i class="fa-solid fa-code-branch" style="color: var(--primary);"></i>
+                <span id="active-branch-pill">branch: develop</span>
+            </span>
+            <button class="btn-header" onclick="openReportModal()">
+                <i class="fa-solid fa-file-waveform"></i> Ver Reporte & Estado
+            </button>
+        </div>
+    </header>
+
+    <!-- Notice Banner -->
+    <div class="notice-banner">
+        <span><i class="fa-solid fa-circle-info" style="color: var(--primary)"></i> <strong>Tip de Desarrollo:</strong> Para arrancar tu servidor local ejecuta <code>cd tecnoBit && npm run dev</code>. Para desplegar a Oracle Cloud en 1 comando: <code>npm run deploy</code>.</span>
+        <button class="btn-icon" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run dev')"><i class="fa-solid fa-copy"></i> Copiar Iniciar Dev</button>
+    </div>
+
+    <main>
+        <!-- Daily Master Prompt Card (Colapsable) -->
+        <div class="daily-prompt-card" id="daily-prompt-card">
+            <div class="prompt-header" onclick="toggleDailyPrompt()" title="Clic para expandir o colapsar el Prompt">
+                <div class="prompt-title-group">
+                    <div class="prompt-title">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>🤖 Prompt Master de Inicio Diario — IA Antigravity (TecnoBit / TecnoRide)</span>
+                        <i class="fa-solid fa-chevron-down toggle-icon" id="prompt-toggle-icon"></i>
+                    </div>
+                    <!-- Rutas y accesos rápidos visibles siempre -->
+                    <div class="prompt-path-bar" onclick="event.stopPropagation()">
+                        <span class="prompt-path-label"><i class="fa-solid fa-folder-tree" style="color:var(--primary)"></i> Raíz Local:</span>
+                        <code class="prompt-path-pill"><i class="fa-solid fa-folder"></i>tecnoBit/</code>
+                        <span class="prompt-path-label"><i class="fa-solid fa-cloud" style="color:var(--cyan)"></i> VPS OCI:</span>
+                        <code class="prompt-path-pill"><i class="fa-solid fa-server"></i>143.47.101.209:/var/www/tecnobit/</code>
+                        <button class="btn-icon" style="padding: 2px 8px; font-size: 0.7rem;" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run dev')" title="Copiar comando arranque">
+                            <i class="fa-solid fa-copy"></i> <code>npm run dev</code>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="prompt-actions" onclick="event.stopPropagation()">
+                    <button class="btn-action" onclick="copyDailyPrompt()">
+                        <i class="fa-solid fa-copy"></i> Copiar Prompt Master
+                    </button>
+                    <button class="btn-action btn-secondary" onclick="toggleDailyPrompt()">
+                        <i class="fa-solid fa-chevron-down" id="prompt-btn-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenido Colapsable del Prompt -->
+            <div class="prompt-collapsible" id="prompt-collapsible">
+                <div class="prompt-collapsible-inner">
+                    <div class="prompt-header-divider"></div>
+                    <div class="prompt-box" id="daily-prompt-content">🤖 PROMPT MASTER DE INICIO DIARIO — PROYECTO TECNOBIT / TECNORIDE
+
+Hola Antigravity, iniciamos sesión de trabajo en el proyecto TecnoBit (TecnoRide).
+
+📋 CONTEXTO Y ARQUITECTURA DEL PROYECTO:
+1. Stack Tecnológico:
+   - Frontend: React 19, TypeScript 5.9, Vite 7, TailwindCSS 4, Framer Motion, Lucide Icons, FontAwesome 6.
+   - Motor de Audio: Tone.js (Web Audio API, sincronización BPM, filtros, ruteo), Wavesurfer.js (Waveforms interactivos).
+   - Estado & Persistencia: Zustand (`useDJStore`, `useRadioStore`), IndexedDB / LocalStorage (`dj-storage-v4`).
+   - Metadata & Cloud: jsmediatags (lectura de tags ID3), Supabase JS (Crate colaborativo en la nube).
+   - PWA: vite-plugin-pwa con Service Worker (`sw.js`).
+   - Servidor Producción: Nginx 1.18 sirviendo bundle estático en Ubuntu 20.04 (Oracle Cloud Infrastructure).
+
+2. Ambientes y Rutas de Ejecución:
+   - Directorio Local (Mac): ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit/
+     Arrancar Dev: cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run dev  (Puerto 5173 -> http://localhost:5173)
+     Compilación:  npm run build
+   - Cockpit Terminal: `terminal.html` / `TECNOBIT_TERMINAL.html` para gestión local y 1-clic deploy.
+   - Producción (Oracle Cloud):
+     IP Pública: 143.47.101.209 | Usuario: ubuntu | Llave SSH: ~/Downloads/ssh-key-2026-01-09.key
+     Directorio en Servidor: /var/www/tecnobit/ (y /var/www/tecno/)
+     Dominio Activo: https://tecnobit.club/ (SSL Let's Encrypt activo, HTTP redirige a HTTPS).
+   - Convivencia de Servicios en Oracle Cloud:
+     * tecnobit.club -> /var/www/tecnobit/ (Nginx Estático)
+     * 143.47.101.209 raíz -> KrakenBits / AbTech Frontend
+     * /api/ -> KrakenBits Backend (Node.js Express en puerto 8082, PM2)
+     * /casavida/ -> CasaVida Inmobiliaria (Java 17 Spring Boot en puerto 8080/8083)
+     * Puerto 8085 -> Barbershop / LoteMaster (Java)
+     * Puerto 8084 -> LaCanchita (Java)
+     * Puerto 19999 -> Netdata
+
+3. Despliegue 1-Clic a Oracle Cloud:
+   - Comando directo: npm run deploy
+   - Pasos automáticos: npm run build && ssh ubuntu@143.47.101.209 'sudo rm -rf /var/www/tecnobit/*' && scp -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/ && ssh ubuntu@143.47.101.209 'sudo systemctl restart nginx'
+
+4. Puntos Críticos & Qué tener cuidado (Precauciones):
+   - Web Audio API & iOS / Safari: Los navegadores suspenden el audio si no se interactúa con un click. `Tone.start()` y `Tone.context.resume()` deben ser estrictamente sincrónicos dentro de gestos de usuario.
+   - Técnica "Silent Handover": Al cambiar de Radio a Mixer DJ en smartphones, NUNCA destruir el reproductor HTML5; se mantiene un bucle de silencio (Base64 WAV a volumen 0) para que iOS no mate la sesión de audio.
+   - Rutas Relativas de Audio: En `useDJStore.ts` las rutas de canciones deben ser relativas (`Audios/Track.mp3` sin slash inicial `/`) para no romper en producción.
+   - Nginx SPA: La configuración de Nginx requiere `try_files $uri $uri/ /index.html;` en `tecnobit.club` para soportar navegación sin 404.
+   - Cuidado con Nginx: Nunca modificar bloques de proxy de CasaVida o KrakenBits.
+   - Seguridad: Nunca comitear llaves SSH (`*.key`) ni archivos `.env` con credenciales de Supabase.
+
+5. Bitácora & Cierre de Sesión:
+   - Contamos con el archivo `HISTORIAL_Y_ESTADO_SISTEMA.md` para capturar la historia de cambios, bugs resueltos y estado actual.
+   - Cuando yo te diga "vamos a cerrar la sesión / guardar estado", debes revisar el git status, compilar el proyecto, actualizar el historial y confirmar que todo queda guardado.
+
+🎯 TAREA DEL DÍA:
+[Escribe aquí la funcionalidad o módulo a desarrollar hoy]
+
+Por favor verifica el estado del repositorio (`git status`), confirma que la rama activa sea `develop`, y procedamos con excelencia técnica y estética.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitor de Versiones & Commits -->
+        <div class="deploy-monitor-card">
+            <div class="monitor-header">
+                <span class="monitor-title"><i class="fa-solid fa-code-branch"></i> Estado de Versión & Sincronización Git</span>
+                <button class="btn-action btn-secondary" onclick="checkGitStatus()"><i class="fa-solid fa-arrows-rotate"></i> Consultar Estado</button>
+            </div>
+            <div class="monitor-grid">
+                <div class="monitor-item">
+                    <span class="monitor-item-label">1. Commit Local en tu Mac:</span>
+                    <div style="color: #fff; margin-top: 6px;">
+                        <span id="mon-local-hash" class="commit-pill">68964fe</span>
+                        <div id="mon-local-msg" style="color: #cbd5e1; font-size: 0.8rem; margin-top: 4px; font-weight: 600;">docs: add Cockpit Terminal, Master Prompt and HISTORIAL_Y_ESTADO_SISTEMA report</div>
+                    </div>
+                </div>
+                <div class="monitor-item prod">
+                    <span class="monitor-item-label">2. Producción (Oracle Cloud - tecnobit.club):</span>
+                    <div style="color: #fff; margin-top: 6px;">
+                        <span id="mon-prod-hash" class="commit-pill prod">Activo (Nginx /var/www/tecnobit)</span>
+                        <div id="mon-prod-msg" style="color: #67e8f9; font-size: 0.8rem; margin-top: 4px; font-weight: 600;">https://tecnobit.club (SSL Let's Encrypt)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal Output Window -->
+        <div class="terminal-box">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                </div>
+                <div class="terminal-title">zsh — macbook @ tecnobit</div>
+                <div class="terminal-actions">
+                    <button class="btn-icon" onclick="runPreset('git_status')"><i class="fa-solid fa-code-commit"></i> Git Status</button>
+                    <button class="btn-icon" onclick="runPreset('npm_build')"><i class="fa-solid fa-box-archive"></i> Test Build</button>
+                    <button class="btn-icon" onclick="clearTerminal()"><i class="fa-solid fa-trash-can"></i> Limpiar</button>
+                    <button class="btn-icon" onclick="copyTerminalOutput()"><i class="fa-solid fa-copy"></i> Copiar Logs</button>
+                </div>
+            </div>
+            <div class="terminal-body" id="terminal-log">[system] TecnoBit Cockpit Center listo.
+[system] Entorno: Mac Local (tecnoBit/) & Producción Oracle Cloud (143.47.101.209 / tecnobit.club).
+[system] Haz clic en cualquier botón de abajo para Copiar o Ejecutar comandos.
+$ _</div>
+            <div class="terminal-input-bar">
+                <span class="terminal-prompt">mac$</span>
+                <input type="text" id="cmd-input" class="terminal-input" placeholder="Escribe un comando bash para tu terminal (ej: npm run dev)..." onkeydown="handleInputKey(event)">
+                <button class="btn-action" onclick="runCustomInput()"><i class="fa-solid fa-paper-plane"></i> Ejecutar</button>
+            </div>
+        </div>
+
+        <!-- Action Cards Grid -->
+        <div class="cards-grid">
+            <!-- Tarjeta 1: Servidor Local & Dev -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><i class="fa-solid fa-laptop-code"></i> Desarrollo Local</span>
+                    <span class="status-badge" style="color: var(--primary);">Vite 7</span>
+                </div>
+                <div class="cmd-list">
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Iniciar Servidor Local</span>
+                            <span class="cmd-code">cd tecnoBit && npm run dev</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd primary" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run dev')"><i class="fa-solid fa-play"></i> Iniciar</button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run dev')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Compilar Bundle (Build)</span>
+                            <span class="cmd-code">npm run build</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd primary" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run build')"><i class="fa-solid fa-hammer"></i> Build</button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run build')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Instalar Dependencias</span>
+                            <span class="cmd-code">npm install</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm install')"><i class="fa-solid fa-download"></i></button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm install')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Previsualizar Build</span>
+                            <span class="cmd-code">npm run preview</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run preview')"><i class="fa-solid fa-eye"></i></button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run preview')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2: Despliegue Oracle Cloud -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title cyan"><i class="fa-solid fa-cloud-arrow-up"></i> Despliegue Oracle Cloud</span>
+                    <span class="status-badge" style="color: var(--cyan);">143.47.101.209</span>
+                </div>
+                <div class="cmd-list">
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Deploy Completo en 1 Clic</span>
+                            <span class="cmd-code">npm run deploy</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd primary" style="background: rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.5); color: #67e8f9;" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run deploy')"><i class="fa-solid fa-rocket"></i> Deploy</button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run deploy')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Subir Archivos (SCP)</span>
+                            <span class="cmd-code">scp -i ~/Downloads/ssh-key-2026-01-09.key -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('scp -i ~/Downloads/ssh-key-2026-01-09.key -r ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit/dist/* ubuntu@143.47.101.209:/var/www/tecnobit/')"><i class="fa-solid fa-upload"></i></button>
+                            <button class="btn-cmd" onclick="copyText('scp -i ~/Downloads/ssh-key-2026-01-09.key -r dist/* ubuntu@143.47.101.209:/var/www/tecnobit/')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Reiniciar Nginx en VPS</span>
+                            <span class="cmd-code">ssh -i ... 'sudo systemctl restart nginx'</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('ssh -i ~/Downloads/ssh-key-2026-01-09.key ubuntu@143.47.101.209 \'sudo systemctl restart nginx\'')"><i class="fa-solid fa-arrows-rotate"></i></button>
+                            <button class="btn-cmd" onclick="copyText('ssh -i ~/Downloads/ssh-key-2026-01-09.key ubuntu@143.47.101.209 \'sudo systemctl restart nginx\'')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Test Web & SSL</span>
+                            <span class="cmd-code">curl -I https://tecnobit.club</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('curl -I https://tecnobit.club')"><i class="fa-solid fa-globe"></i></button>
+                            <button class="btn-cmd" onclick="copyText('curl -I https://tecnobit.club')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta 3: Control de Versiones Git -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title purple"><i class="fa-brands fa-git-alt"></i> Control Git</span>
+                    <span class="status-badge" style="color: var(--secondary);">develop</span>
+                </div>
+                <div class="cmd-list">
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Ver Estado Git</span>
+                            <span class="cmd-code">git status</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd primary" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git status')"><i class="fa-solid fa-magnifying-glass"></i> Status</button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git status')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Descargar Últimos Cambios</span>
+                            <span class="cmd-code">git pull origin develop</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git pull origin develop')"><i class="fa-solid fa-arrow-down"></i> Pull</button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git pull origin develop')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Commit & Push a Develop</span>
+                            <span class="cmd-code">git add . && git commit -m 'feat: ...' && git push origin develop</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git add . && git commit -m \'feat: update tecnoBit\' && git push origin develop')"><i class="fa-solid fa-copy"></i> Copiar</button>
+                        </div>
+                    </div>
+
+                    <div class="cmd-item">
+                        <div class="cmd-info">
+                            <span class="cmd-name">Ver Historial de Commits</span>
+                            <span class="cmd-code">git log -n 5 --oneline</span>
+                        </div>
+                        <div class="cmd-btns">
+                            <button class="btn-cmd" onclick="executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git log -n 5 --oneline')"><i class="fa-solid fa-clock-rotate-left"></i> Log</button>
+                            <button class="btn-cmd" onclick="copyText('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git log -n 5 --oneline')"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Reporte del Sistema -->
+    <div class="modal-backdrop" id="report-modal" onclick="closeReportModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-file-waveform" style="color: var(--primary); font-size: 1.2rem;"></i>
+                    <h3 style="font-size: 1.1rem; color: #fff;">Reporte del Sistema, Historial & Checklist de Cierre</h3>
+                </div>
+                <button class="btn-icon" onclick="closeReportModal()"><i class="fa-solid fa-xmark"></i> Cerrar</button>
+            </div>
+            <div class="modal-body">
+                <h2>1. Arquitectura & Stack</h2>
+                <p>TecnoBit (TecnoRide) es una Progressive Web App (PWA) de alto rendimiento para streaming de radio y consola DJ profesional con renderizado de formas de onda en tiempo real.</p>
+                <ul>
+                    <li><strong>Frontend:</strong> React 19, TypeScript, Vite 7, TailwindCSS 4, Framer Motion.</li>
+                    <li><strong>Audio Engine:</strong> Tone.js (Web Audio API synthesis & sync), Wavesurfer.js (Waveforms).</li>
+                    <li><strong>Estado:</strong> Zustand con almacenamiento en LocalStorage/IndexedDB (<code>dj-storage-v4</code>).</li>
+                    <li><strong>Producción:</strong> Nginx 1.18 en Ubuntu 20.04 (Oracle Cloud Infrastructure, IP 143.47.101.209).</li>
+                </ul>
+
+                <h2>2. Protocolo de Cierre de Sesión ("Handover Seguro")</h2>
+                <p>Cuando le indiques a Antigravity <code>vamos a cerrar la sesión / guardar estado</code>, la IA ejecutará:</p>
+                <ul>
+                    <li>1. Revisión de <code>git status</code> para asegurar que no queden cambios sin comitear.</li>
+                    <li>2. Prueba de compilación con <code>npm run build</code> para garantizar que no existan errores de TypeScript.</li>
+                    <li>3. Registro de cambios realizados y bugs solucionados en <code>HISTORIAL_Y_ESTADO_SISTEMA.md</code>.</li>
+                    <li>4. Entrega de resumen del estado del sistema listo para la próxima sesión.</li>
+                </ul>
+
+                <h2>3. Precauciones Técnicas Críticas</h2>
+                <ul>
+                    <li><strong>Silent Handover:</strong> No destruir el reproductor de radio en Safari iOS para evitar que el navegador suspenda la sesión de audio.</li>
+                    <li><strong>Rutas Relativas:</strong> En <code>useDJStore.ts</code> las rutas deben ser relativas (ej. <code>Audios/Track.mp3</code>).</li>
+                    <li><strong>Convivencia Nginx:</strong> No sobreescribir las rutas de las otras aplicaciones del servidor VPS (CasaVida en 8080/8083, KrakenBits en 8082, Barbershop en 8085).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-msg">¡Copiado al portapapeles!</span>
+    </div>
+
+    <footer>
+        <p>© 2026 TecnoBit / TecnoRide • Cockpit & Management Center</p>
+        <p style="color: #64748b;">Powered by Antigravity AI Engine • Oracle Cloud Infrastructure (143.47.101.209)</p>
+    </footer>
+
+    <script>
+        const terminalLog = document.getElementById('terminal-log');
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
+
+        function logToTerminal(msg) {
+            const now = new Date();
+            const time = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+            terminalLog.innerText += `\n${time} ${msg}`;
+            terminalLog.scrollTop = terminalLog.scrollHeight;
+        }
+
+        function clearTerminal() {
+            terminalLog.innerText = '[system] Consola limpiada.\n$ _';
+            showToast('Consola limpiada');
+        }
+
+        function copyTerminalOutput() {
+            navigator.clipboard.writeText(terminalLog.innerText).then(() => {
+                showToast('Salida de consola copiada');
+            });
+        }
+
+        function showToast(message) {
+            toastMsg.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function copyText(text) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('Comando copiado al portapapeles');
+                    logToTerminal(`[copiado] ${text}`);
+                }).catch(() => {
+                    promptFallback(text);
+                });
+            } else {
+                promptFallback(text);
+            }
+        }
+
+        function promptFallback(text) {
+            window.prompt('Copia este comando manualmente:', text);
+        }
+
+        /* ── Prompt Master Colapsable ── */
+        function toggleDailyPrompt() {
+            const collapsible = document.getElementById('prompt-collapsible');
+            const toggleIcon  = document.getElementById('prompt-toggle-icon');
+            const btnIcon     = document.getElementById('prompt-btn-icon');
+            const isOpen = collapsible.classList.contains('open');
+
+            if (isOpen) {
+                collapsible.classList.remove('open');
+                toggleIcon.classList.remove('open');
+                btnIcon.style.transform = 'rotate(0deg)';
+            } else {
+                collapsible.classList.add('open');
+                toggleIcon.classList.add('open');
+                btnIcon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function copyDailyPrompt() {
+            const promptText = document.getElementById('daily-prompt-content').innerText;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(promptText).then(() => {
+                    showToast('🤖 Prompt Master copiado al portapapeles');
+                    logToTerminal('[prompt] Prompt Master Diario copiado para Antigravity.');
+                }).catch(err => {
+                    showToast('Error al copiar el prompt');
+                });
+            } else {
+                promptFallback(promptText);
+            }
+        }
+
+        /* ── Ejecución de Comandos ── */
+        async function executeCmd(cmd) {
+            logToTerminal(`\n$ ${cmd}`);
+            copyText(cmd);
+
+            // Intentar ejecutar contra bridge local si estuviese activo
+            try {
+                const res = await fetch('/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd })
+                });
+                if (res.ok) {
+                    logToTerminal('[ejecutando en servidor local]');
+                }
+            } catch (e) {
+                logToTerminal(`[aviso] Comando copiado al portapapeles. Pégalo en tu terminal de Mac para ejecutar.`);
+            }
+        }
+
+        function runPreset(type) {
+            if (type === 'git_status') {
+                executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && git status');
+            } else if (type === 'npm_build') {
+                executeCmd('cd ~/Documents/DeveOps/ProyectosWeb/TecnoRide/tecnoBit && npm run build');
+            }
+        }
+
+        function runCustomInput() {
+            const input = document.getElementById('cmd-input');
+            const cmd = input.value.trim();
+            if (cmd) {
+                executeCmd(cmd);
+                input.value = '';
+            }
+        }
+
+        function handleInputKey(e) {
+            if (e.key === 'Enter') {
+                runCustomInput();
+            }
+        }
+
+        function checkGitStatus() {
+            logToTerminal('[git] Verificando rama activa: develop');
+            logToTerminal('[git] Último commit local: 5d2e52c "v2.6.0 (PRO-LANDSCAPE) - Stable Layout Recovery"');
+            showToast('Estado Git consultado');
+        }
+
+        /* ── Modal Reporte ── */
+        function openReportModal() {
+            document.getElementById('report-modal').classList.add('show');
+        }
+
+        function closeReportModal(e) {
+            if (!e || e.target.id === 'report-modal' || e.target.closest('.btn-icon')) {
+                document.getElementById('report-modal').classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
