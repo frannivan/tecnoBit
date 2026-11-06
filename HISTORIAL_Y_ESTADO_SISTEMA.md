@@ -79,10 +79,11 @@ El servidor VPS alberga múltiples proyectos en simultáneo. Se debe tener cuida
 - **Acción Realizada:**
   1. Se descargó la versión limpia y completa desde el repositorio remoto GitHub (`https://github.com/frannivan/tecnoBit.git`).
   2. Se configuraron y verificaron las ramas `develop` (`v2.6.0 PRO-LANDSCAPE`) y `main`.
-  3. Se ejecutó `npm install` y se verificó la compilación con `npm run build` (3.26s sin errores, bundle generado exitosamente).
+  3. Se ejecutó `npm install` y se verificó la compilación con `npm run build` (3.47s sin errores, bundle generado exitosamente).
   4. Se integró el nuevo archivo interactivo `terminal.html` con estética Cockpit Ultra-Pro, Prompt Master Diario colapsable con 1-clic copy, monitor de commits y accesos directos de desarrollo, Git y despliegue a Oracle Cloud.
-  5. Se creó este archivo maestro de control `HISTORIAL_Y_ESTADO_SISTEMA.md`.
-- **Estado al Cerrar:** Repositorio en rama `develop` 100% limpio, dependencias listas, build verificado y terminal operativa.
+  5. Se implementó el **Servidor Puente Local (`bridge.cjs`)** en el puerto `9099` con SSE (`/stream`) y ejecución en vivo (`/run`), permitiendo que cada clic en los botones ejecute los comandos directamente en la Mac y muestre el estatus y salida de consola en tiempo real en la pantalla.
+  6. Se creó este archivo maestro de control `HISTORIAL_Y_ESTADO_SISTEMA.md`.
+- **Estado al Cerrar:** Repositorio en rama `develop` 100% limpio, dependencias listas, build verificado, bridge en vivo activo en puerto 9099 y terminal operativa.
 
 ---
 
@@ -114,3 +115,4 @@ Cuando el usuario indique: **"vamos a cerrar la sesión"** o **"guarda todo lo n
    - Indicar si los cambios requieren o ya tienen despliegue en Oracle Cloud (`npm run deploy`).
 5. **Confirmación Final al Usuario:**
    - Entregar un resumen ejecutivo del estado del proyecto, confirmando que todo está guardado y listo para reanudar en la siguiente sesión con el **Prompt Master de Inicio**.
+
