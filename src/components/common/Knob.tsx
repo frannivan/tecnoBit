@@ -9,9 +9,10 @@ interface KnobProps {
   size?: number;
   label?: string;
   onInteraction?: () => void;
+  disabled?: boolean;
 }
 
-export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64, label, onInteraction }) => {
+export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64, label, onInteraction, disabled = false }) => {
   const [isDragging, setIsDragging] = useState(false);
   const knobRef = useRef<HTMLDivElement>(null);
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
@@ -22,7 +23,7 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
 
   useEffect(() => {
     const handleWindowPointerMove = (e: PointerEvent) => {
-      if (!isDragging) return;
+      if (!isDragging || disabled) return;
 
       const sensitivity = 0.006;
       let dy = e.movementY;
@@ -71,13 +72,14 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
       window.removeEventListener('pointerup', handleWindowPointerUp);
       window.removeEventListener('pointercancel', handleWindowPointerUp);
     };
-  }, [isDragging, value, min, max, onChange]);
+  }, [isDragging, disabled, value, min, max, onChange]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     if (onInteraction) {
       onInteraction();
     }
+    if (disabled) return;
     const target = e.currentTarget as HTMLElement;
     try {
       target.setPointerCapture(e.pointerId);
@@ -90,6 +92,7 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
   };
 
   const handleWheel = (e: React.WheelEvent) => {
+    if (disabled) return;
     const step = 0.05;
     const delta = e.deltaY > 0 ? -step : step;
     let newValue = value + delta;
@@ -102,7 +105,7 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
       <div className="relative">
           <motion.div 
             ref={knobRef}
-            className={`relative rounded-full bg-zinc-800 shadow-xl border-2 border-zinc-700 touch-none transition-shadow ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`relative rounded-full bg-zinc-800 shadow-xl border-2 border-zinc-700 touch-none transition-shadow ${disabled ? 'cursor-default opacity-85' : isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{ 
               width: size, 
               height: size,
@@ -110,17 +113,17 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
             }}
             onPointerDown={handlePointerDown}
             onWheel={handleWheel}
-            whileHover={{ 
+            whileHover={disabled ? undefined : { 
               scale: 1.05, 
               borderColor: '#f97316',
               boxShadow: "0 0 20px rgba(249, 115, 22, 0.2)"
             }}
-            whileTap={{ scale: 0.95 }}
-            title="Drag up/down or Scroll to adjust"
+            whileTap={disabled ? undefined : { scale: 0.95 }}
+            title={disabled ? "Controlado por los botones físicos del dispositivo" : "Drag up/down or Scroll to adjust"}
           >
             {/* Indicator Line */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1 h-1/2 origin-bottom">
-                <div className="w-full h-1/3 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
+                <div className={`w-full h-1/3 rounded-full ${disabled ? 'bg-zinc-400 shadow-none' : 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]'}`}></div>
             </div>
             
             {/* Texture/Grip */}
@@ -131,9 +134,11 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
           </motion.div>
           
           {/* Value Tooltip on Hover */}
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 text-orange-500 text-xs font-bold px-2 py-1 rounded opacity-0 group-hover/knob:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-            {Math.round(((value - min) / (max - min)) * 100)}%
-          </div>
+          {!disabled && (
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 text-orange-500 text-xs font-bold px-2 py-1 rounded opacity-0 group-hover/knob:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+              {Math.round(((value - min) / (max - min)) * 100)}%
+            </div>
+          )}
       </div>
       {label && <span className="text-xs font-mono text-zinc-400 uppercase tracking-widest">{label}</span>}
     </div>

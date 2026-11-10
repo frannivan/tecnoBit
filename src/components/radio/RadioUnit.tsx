@@ -31,14 +31,15 @@ const RadioUnitComponent: React.FC = () => {
     setStation
   } = useRadioStore();
 
+  const isAppleDevice = isIOS();
   const [showIOSTip, setShowIOSTip] = useState(false);
   const iosTipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const triggerIOSNotice = () => {
-    if (isIOS()) {
+    if (isAppleDevice) {
       setShowIOSTip(true);
       if (iosTipTimerRef.current) clearTimeout(iosTipTimerRef.current);
-      iosTipTimerRef.current = setTimeout(() => setShowIOSTip(false), 3200);
+      iosTipTimerRef.current = setTimeout(() => setShowIOSTip(false), 3500);
     }
   };
 
@@ -64,45 +65,70 @@ const RadioUnitComponent: React.FC = () => {
         <div className="relative z-10 flex flex-col md:flex-row gap-4 md:gap-8 items-center justify-between">
             
              {/* Left Controls (Volume) */}
-            <div className="flex flex-col items-center gap-4 w-24">
-                <div className="relative group">
+            <div className="flex flex-col items-center gap-3 w-28">
+                <div className="relative group flex flex-col items-center">
                     <AnimatePresence>
                       {showIOSTip && (
                         <motion.div
                           initial={{ opacity: 0, y: 4, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                          className="absolute -top-12 left-1/2 -translate-x-1/2 bg-zinc-900 border border-orange-500/80 text-orange-400 text-[10px] font-sans px-2.5 py-1 rounded-md shadow-2xl pointer-events-none whitespace-nowrap z-30 flex items-center gap-1.5"
+                          className="absolute -top-10 left-1/2 -translate-x-1/2 bg-zinc-900 border border-orange-500/80 text-orange-400 text-[10px] font-sans px-2.5 py-1 rounded-md shadow-2xl pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5"
                         >
                           <span>📱</span>
-                          <span>En iPhone usa los botones físicos</span>
+                          <span>Usa los botones laterales de tu iPhone</span>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
                     <Knob 
-                        value={volume} 
+                        value={isMuted ? 0 : (isAppleDevice ? 1 : volume)} 
                         min={0} 
                         max={1} 
                         onChange={setVolume} 
-                        label="Volume" 
+                        label={isAppleDevice ? "Vol. Físico" : "Volume"} 
                         onInteraction={triggerIOSNotice}
+                        disabled={isAppleDevice}
                     />
-                     {/* Tooltip for Knob */}
-                     {!showIOSTip && (
+                     {/* Tooltip for Knob (Only desktop/android) */}
+                     {!isAppleDevice && !showIOSTip && (
                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-orange-500 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-zinc-700">
                           {Math.round(volume * 100)}%
                        </div>
                      )}
                 </div>
                 
-                {/* Discrete Volume Buttons */}
-                <div className="flex items-center gap-2">
+                {/* Volume / Mute Controls */}
+                {isAppleDevice ? (
+                  /* Dedicated Full-Width Mute Switch for iPhone / iPad */
+                  <div className="flex flex-col items-center gap-1 w-full">
+                    <button 
+                      type="button"
+                      onClick={(e) => {
+                          e.preventDefault();
+                          toggleMute();
+                      }}
+                      title={isMuted ? "Activar Sonido" : "Silenciar"}
+                      className={`w-full py-1.5 px-2.5 rounded-lg border font-mono text-[11px] flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer touch-manipulation ${
+                        isMuted 
+                          ? 'bg-red-950/70 border-red-500 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.3)]' 
+                          : 'bg-zinc-800 border-zinc-700 text-green-400 hover:border-green-500'
+                      }`}
+                    >
+                      {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                      <span className="font-bold tracking-wider">{isMuted ? "MUTED" : "MUTE"}</span>
+                    </button>
+                    <span className="text-[9px] font-mono text-zinc-500 text-center tracking-tight select-none">
+                      📱 Botones del iPhone
+                    </span>
+                  </div>
+                ) : (
+                  /* Desktop / Android Volume Adjusters */
+                  <div className="flex items-center gap-2">
                      <button 
                         type="button"
-                        onPointerDown={(e) => {
+                        onClick={(e) => {
                             e.preventDefault();
-                            triggerIOSNotice();
                             setVolume(Math.max(0, Math.round((volume - 0.1) * 10) / 10));
                         }}
                         className="w-10 h-10 md:w-8 md:h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 active:scale-90 transition-all cursor-pointer shadow-md touch-manipulation"
@@ -112,7 +138,7 @@ const RadioUnitComponent: React.FC = () => {
                      </button>
                     <button 
                       type="button"
-                      onPointerDown={(e) => {
+                      onClick={(e) => {
                           e.preventDefault();
                           toggleMute();
                       }}
@@ -125,9 +151,8 @@ const RadioUnitComponent: React.FC = () => {
                     </button>
                      <button 
                         type="button"
-                        onPointerDown={(e) => {
+                        onClick={(e) => {
                             e.preventDefault();
-                            triggerIOSNotice();
                             setVolume(Math.min(1, Math.round((volume + 0.1) * 10) / 10));
                         }}
                         className="w-10 h-10 md:w-8 md:h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 active:scale-90 transition-all cursor-pointer shadow-md touch-manipulation"
@@ -135,7 +160,8 @@ const RadioUnitComponent: React.FC = () => {
                      >
                         <span className="text-xl md:text-base pointer-events-none select-none">+</span>
                      </button>
-                </div>
+                  </div>
+                )}
             </div>
 
             {/* Center Display (Frequency & Info) */}
