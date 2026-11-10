@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useRadioStore } from '../../store/useRadioStore';
 import { useDJStore } from '../../store/useDJStore';
 import { Knob } from '../common/Knob';
 import { Tuner } from './Tuner';
 import { stations } from '../../data/stations';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Power, Volume2, VolumeX } from 'lucide-react';
 
 import { Visualizer } from './Visualizer';
+
+const isIOS = () => {
+  if (typeof navigator === 'undefined') return false;
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+};
 
 const RadioUnitComponent: React.FC = () => {
   const { 
@@ -22,6 +30,17 @@ const RadioUnitComponent: React.FC = () => {
     error,
     setStation
   } = useRadioStore();
+
+  const [showIOSTip, setShowIOSTip] = useState(false);
+  const iosTipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerIOSNotice = () => {
+    if (isIOS()) {
+      setShowIOSTip(true);
+      if (iosTipTimerRef.current) clearTimeout(iosTipTimerRef.current);
+      iosTipTimerRef.current = setTimeout(() => setShowIOSTip(false), 3200);
+    }
+  };
 
   return (
     <div className="w-full max-w-7xl mx-auto p-2 md:p-4 perspective-1000">
@@ -47,17 +66,34 @@ const RadioUnitComponent: React.FC = () => {
              {/* Left Controls (Volume) */}
             <div className="flex flex-col items-center gap-4 w-24">
                 <div className="relative group">
+                    <AnimatePresence>
+                      {showIOSTip && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -4, scale: 0.95 }}
+                          className="absolute -top-12 left-1/2 -translate-x-1/2 bg-zinc-900 border border-orange-500/80 text-orange-400 text-[10px] font-sans px-2.5 py-1 rounded-md shadow-2xl pointer-events-none whitespace-nowrap z-30 flex items-center gap-1.5"
+                        >
+                          <span>📱</span>
+                          <span>En iPhone usa los botones físicos</span>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <Knob 
                         value={volume} 
                         min={0} 
                         max={1} 
                         onChange={setVolume} 
                         label="Volume" 
+                        onInteraction={triggerIOSNotice}
                     />
                      {/* Tooltip for Knob */}
-                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-orange-500 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-zinc-700">
-                        {Math.round(volume * 100)}%
-                    </div>
+                     {!showIOSTip && (
+                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-800 text-orange-500 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-zinc-700">
+                          {Math.round(volume * 100)}%
+                       </div>
+                     )}
                 </div>
                 
                 {/* Discrete Volume Buttons */}
@@ -66,7 +102,8 @@ const RadioUnitComponent: React.FC = () => {
                         type="button"
                         onPointerDown={(e) => {
                             e.preventDefault();
-                            setVolume(Math.max(0, volume - 0.1));
+                            triggerIOSNotice();
+                            setVolume(Math.max(0, Math.round((volume - 0.1) * 10) / 10));
                         }}
                         className="w-10 h-10 md:w-8 md:h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 active:scale-90 transition-all cursor-pointer shadow-md touch-manipulation"
                         title="Volume Down"
@@ -90,7 +127,8 @@ const RadioUnitComponent: React.FC = () => {
                         type="button"
                         onPointerDown={(e) => {
                             e.preventDefault();
-                            setVolume(Math.min(1, volume + 0.1));
+                            triggerIOSNotice();
+                            setVolume(Math.min(1, Math.round((volume + 0.1) * 10) / 10));
                         }}
                         className="w-10 h-10 md:w-8 md:h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-500 active:scale-90 transition-all cursor-pointer shadow-md touch-manipulation"
                         title="Volume Up"

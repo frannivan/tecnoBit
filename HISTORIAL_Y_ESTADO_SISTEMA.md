@@ -96,6 +96,7 @@ El servidor VPS alberga múltiples proyectos en simultáneo. Se debe tener cuida
 | **BUG-03** | Error 404 al recargar subrutas (`/home`, `/radio`) en producción | Alta | Resuelto | Nginx configurado con `try_files $uri $uri/ /index.html;` en `tecnobit.club`. |
 | **BUG-04** | Bloqueo de audio si el usuario no interactúa con la pantalla | Baja (Comportamiento SO) | Resuelto | Pantalla de inicio con botón "Start Audio Engine" que inicializa el contexto de Tone.js bajo gesto de usuario. |
 | **BUG-05** | Fallo en hot-reload por caché IndexedDB viejo | Baja | Resuelto | Incrementado storage key a `dj-storage-v4` con auto-limpieza en caso de incompatibilidad. |
+| **BUG-06** | En celulares iPhone el volumen de la radio se movía visualmente pero no cambiaba el sonido | Alta | Resuelto | En iOS Safari, `HTMLMediaElement.volume` está bloqueado por hardware por diseño de Apple. Se implementó una solución profesional: en Android y Desktop el Knob y botones regulan `audio.volume` de forma desacoplada y fluida; en iPhone/iOS el botón Mute silencia/activa al 100%, y al interactuar con el Knob o botones +/- se despliega una notificación flotante indicando el uso de los botones laterales físicos, manteniendo la reproducción nativa HTML5 intacta sin cortes de señal. |
 
 ---
 

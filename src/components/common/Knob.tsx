@@ -8,12 +8,14 @@ interface KnobProps {
   onChange: (value: number) => void;
   size?: number;
   label?: string;
+  onInteraction?: () => void;
 }
 
-export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64, label }) => {
+export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64, label, onInteraction }) => {
   const [angle, setAngle] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const knobRef = useRef<HTMLDivElement>(null);
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
 
   // Map value to angle (-135 to 135 degrees)
   useEffect(() => {
@@ -26,8 +28,18 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
     const handleWindowPointerMove = (e: PointerEvent) => {
       if (!isDragging) return;
 
-      const sensitivity = 0.005;
-      const delta = (-e.movementY + e.movementX) * sensitivity;
+      const sensitivity = 0.006;
+      let dy = e.movementY;
+      let dx = e.movementX;
+
+      // Fallback for touch screens (iOS/Android) where movementX/movementY can be 0 or undefined
+      if (lastPointerRef.current && (dy === undefined || dx === undefined || (dy === 0 && dx === 0))) {
+        dy = e.clientY - lastPointerRef.current.y;
+        dx = e.clientX - lastPointerRef.current.x;
+      }
+      lastPointerRef.current = { x: e.clientX, y: e.clientY };
+
+      const delta = (-(dy || 0) + (dx || 0)) * sensitivity;
       const newValue = Math.min(max, Math.max(min, value + delta));
       
       if (newValue !== value) {
@@ -38,6 +50,7 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
     const handleWindowPointerUp = (e: PointerEvent) => {
       if (!isDragging) return;
       setIsDragging(false);
+      lastPointerRef.current = null;
       document.body.style.cursor = '';
       
       // Explicitly release capture if possible
@@ -66,8 +79,14 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
+    if (onInteraction) {
+      onInteraction();
+    }
     const target = e.currentTarget as HTMLElement;
-    target.setPointerCapture(e.pointerId);
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    lastPointerRef.current = { x: e.clientX, y: e.clientY };
     setIsDragging(true);
     document.body.style.cursor = 'grabbing';
   };

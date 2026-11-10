@@ -105,11 +105,26 @@ export const useAudioPlayer = () => {
     return () => window.removeEventListener('radio-play-track', (handleRadioTrack as any));
   }, [setStation]);
 
+  // 3. Real-time Volume & Mute Synchronization (Desktop & Android)
+  useEffect(() => {
+    const audio1 = getAudio(1);
+    const audio2 = getAudio(2);
+    const target = isMuted ? 0 : masterVolume;
+    [audio1, audio2].forEach(a => {
+      try {
+        a.volume = target;
+      } catch (e) {}
+      try {
+        a.muted = isMuted;
+      } catch (e) {}
+    });
+  }, [masterVolume, isMuted]);
+
   // Reactively track mixer state
   const isPlayingA = useDJStore(state => state.isPlayingA);
   const isPlayingB = useDJStore(state => state.isPlayingB);
 
-  // Sync state between store and physical player 
+  // 4. Playback and Station Management
   useEffect(() => {
     const audio1 = getAudio(1);
     const audio2 = getAudio(2);
@@ -124,7 +139,9 @@ export const useAudioPlayer = () => {
             mainAudio.src = currentStation?.streamUrl || '';
             mainAudio.load();
         }
-        mainAudio.volume = masterVolume;
+        try {
+            mainAudio.volume = isMuted ? 0 : masterVolume;
+        } catch (e) {}
         mainAudio.play().then(() => setLoading(false)).catch(() => setLoading(false));
 
         // Ensure secondary is stopped
@@ -134,9 +151,7 @@ export const useAudioPlayer = () => {
         audio1.pause();
         audio2.pause();
     }
-
-    [audio1, audio2].forEach(a => { a.muted = isMuted; });
-  }, [currentStation, isPlaying, activeDeck, masterVolume, isMuted, isPlayingA, isPlayingB]);
+  }, [currentStation, isPlaying, activeDeck, isPlayingA, isPlayingB]);
 
   return null;
 };
