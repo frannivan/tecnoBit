@@ -12,17 +12,13 @@ interface KnobProps {
 }
 
 export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64, label, onInteraction }) => {
-  const [angle, setAngle] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const knobRef = useRef<HTMLDivElement>(null);
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Map value to angle (-135 to 135 degrees)
-  useEffect(() => {
-    const percentage = (value - min) / (max - min);
-    const newAngle = -135 + (percentage * 270);
-    setAngle(newAngle);
-  }, [value, min, max]);
+  // Directly derive angle from value (-135 to 135 degrees)
+  const percentage = max !== min ? (value - min) / (max - min) : 0;
+  const angle = -135 + (percentage * 270);
 
   useEffect(() => {
     const handleWindowPointerMove = (e: PointerEvent) => {
@@ -59,8 +55,8 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
         if (target && target.releasePointerCapture) {
           target.releasePointerCapture(e.pointerId);
         }
-      } catch (err) {
-        // Ignore capture errors
+      } catch {
+        // Ignore capture errors on unsupported platforms
       }
     };
 
@@ -85,7 +81,9 @@ export const Knob: React.FC<KnobProps> = ({ value, min, max, onChange, size = 64
     const target = e.currentTarget as HTMLElement;
     try {
       target.setPointerCapture(e.pointerId);
-    } catch (err) {}
+    } catch {
+      // Ignore capture errors on unsupported platforms
+    }
     lastPointerRef.current = { x: e.clientX, y: e.clientY };
     setIsDragging(true);
     document.body.style.cursor = 'grabbing';

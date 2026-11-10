@@ -89,8 +89,9 @@ export const useAudioPlayer = () => {
 
   // 2. Play tracks on Radio (Requested behavior)
   useEffect(() => {
-    const handleRadioTrack = (e: any) => {
-        const track = e.detail;
+    const handleRadioTrack = (e: Event) => {
+        const customEvent = e as CustomEvent<{ id: string; title: string; audioUrl: string; artist?: string }>;
+        const track = customEvent.detail;
         if (track) {
             setStation({
                 id: track.id,
@@ -101,8 +102,8 @@ export const useAudioPlayer = () => {
             });
         }
     };
-    window.addEventListener('radio-play-track', (handleRadioTrack as any));
-    return () => window.removeEventListener('radio-play-track', (handleRadioTrack as any));
+    window.addEventListener('radio-play-track', handleRadioTrack);
+    return () => window.removeEventListener('radio-play-track', handleRadioTrack);
   }, [setStation]);
 
   // 3. Real-time Volume & Mute Synchronization (Desktop & Android)
@@ -113,10 +114,14 @@ export const useAudioPlayer = () => {
     [audio1, audio2].forEach(a => {
       try {
         a.volume = target;
-      } catch (e) {}
+      } catch {
+        // Platform or browser restricted
+      }
       try {
         a.muted = isMuted;
-      } catch (e) {}
+      } catch {
+        // Platform or browser restricted
+      }
     });
   }, [masterVolume, isMuted]);
 
@@ -141,7 +146,9 @@ export const useAudioPlayer = () => {
         }
         try {
             mainAudio.volume = isMuted ? 0 : masterVolume;
-        } catch (e) {}
+        } catch {
+            // Platform or browser restricted
+        }
         mainAudio.play().then(() => setLoading(false)).catch(() => setLoading(false));
 
         // Ensure secondary is stopped
@@ -151,6 +158,8 @@ export const useAudioPlayer = () => {
         audio1.pause();
         audio2.pause();
     }
+  // Volume and mute are reactively handled in effect #3 to avoid re-triggering playback/reload
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStation, isPlaying, activeDeck, isPlayingA, isPlayingB]);
 
   return null;
